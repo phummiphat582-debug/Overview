@@ -26,6 +26,12 @@ function loadMonth(){
  walkin.value=d.customers?.walkin||"";
  home.value=d.customers?.home||"";
 
+ expFuel.value=d.expenses?.fuel||"";
+ expRepair.value=d.expenses?.repair||"";
+ expSalary.value=d.expenses?.salary||"";
+ expOther.value=d.expenses?.other||"";
+
+
  staffTable.innerHTML=`<tr><th>ชื่อ</th><th>ทำงาน</th><th>หยุด</th><th>เตือน</th></tr>`;
  (d.staff||[]).forEach(s=>{
   staffTable.innerHTML+=`
@@ -60,6 +66,12 @@ function clearForm(){
  revOther.value="";
  walkin.value="";
  home.value="";
+
+ expFuel.value="";
+ expRepair.value="";
+ expSalary.value="";
+ expOther.value="";
+
  staffTable.innerHTML=`<tr><th>ชื่อ</th><th>ทำงาน</th><th>หยุด</th><th>เตือน</th></tr>`;
 }
 
@@ -137,14 +149,16 @@ body{margin:0;background:var(--bg);color:var(--text)}
 
 .kpi-row{
   display:grid;
-  grid-template-columns:repeat(auto-fit,minmax(220px,1fr));
-  gap:16px;
+  grid-template-columns:repeat(auto-fit,minmax(240px,1fr));
+  gap:28px;
+  margin-top:18px;
+  margin-bottom:18px;
 }
 
 .kpi{
   background:#f9fafb;
-  border-radius:16px;
-  padding:18px;
+  border-radius:20px;
+  padding:24px;
   border-left:8px solid transparent;
 }
 .kpi.good{border-color:var(--green)}
@@ -363,6 +377,27 @@ section{
 }
 @keyframes spin{to{transform:rotate(360deg);}}
 
+
+/* KPI animation */
+.kpi{
+  animation:kpiIn .5s cubic-bezier(.34,1.56,.64,1);
+}
+
+@keyframes kpiIn{
+  from{opacity:0;transform:translateY(18px) scale(.96);}
+  to{opacity:1;transform:translateY(0) scale(1);}
+}
+
+/* chart animation */
+canvas{
+ animation:chartIn .6s ease;
+}
+
+@keyframes chartIn{
+ from{opacity:0;transform:translateY(20px);}
+ to{opacity:1;transform:translateY(0);}
+}
+
 </style>
 <link rel="manifest" href="manifest.json">
 <meta name="theme-color" content="#ef4b3f">
@@ -412,6 +447,12 @@ section{
     <div class="label">รายได้เทียบเดือนก่อน</div>
     <div class="value" id="revDiffTxt">-</div>
   </div>
+
+  <div class="kpi" id="kpiProfit">
+    <div class="label">กำไรสุทธิ</div>
+    <div class="value" id="profitTxt">-</div>
+  </div>
+
 </div>
 
 <div class="card">
@@ -456,6 +497,15 @@ section{
   <label>ทัวร์</label><input id="revTour">
   <label>เช่า</label><input id="revRent">
   <label>อื่น</label><input id="revOther">
+</div>
+
+
+<div class="card">
+  <h3>รายจ่าย</h3>
+  <label>ค่าน้ำมัน</label><input id="expFuel">
+  <label>ค่าซ่อม</label><input id="expRepair">
+  <label>เงินเดือน</label><input id="expSalary">
+  <label>อื่น ๆ</label><input id="expOther">
 </div>
 
 <div class="card">
@@ -512,6 +562,12 @@ function saveMonth(){
  const data={
   cars:{max:+maxCar.value,min:+minCar.value},
   revenue:{tour:+revTour.value,rent:+revRent.value,other:+revOther.value},
+  expenses:{
+    fuel:+expFuel.value,
+    repair:+expRepair.value,
+    salary:+expSalary.value,
+    other:+expOther.value
+  },
   customers:{walkin:+walkin.value,home:+home.value},
   staff
  };
@@ -533,23 +589,47 @@ function renderDashboard(){
  maxTxt.innerText=`${cur.cars?.max||0} คัน`;
  minTxt.innerText=`${cur.cars?.min||0} คัน`;
  revTxt.innerText=rev.toLocaleString()+" บาท";
+
+ const exp=(cur.expenses?.fuel||0)
+ +(cur.expenses?.repair||0)
+ +(cur.expenses?.salary||0)
+ +(cur.expenses?.other||0);
+
+ const profit=rev-exp;
+ profitTxt.innerText=profit.toLocaleString()+" บาท";
+
+ const profitKPI=document.getElementById("kpiProfit");
+ profitKPI.classList.remove("good","warn","danger");
+
+ if(profit<0){
+  profitKPI.classList.add("danger");
+  showToast("⚠ ขาดทุน!");
+ }else if(profit<5000){
+  profitKPI.classList.add("warn");
+ }else{
+  profitKPI.classList.add("good");
+ }
+
  revDiffTxt.innerText=prevRev?(((rev-prevRev)/prevRev)*100).toFixed(1)+"%":"-";
  custTxt.innerText=`${cur.customers?.walkin||0} / ${cur.customers?.home||0}`;
 
  const st=cur.staff||[];
  staffTxt.innerText=`${st.reduce((a,b)=>a+b.work,0)} / ${st.reduce((a,b)=>a+b.off,0)} / ${st.reduce((a,b)=>a+b.warn,0)}`;
 
+ 
  if(chart)chart.destroy();
  chart=new Chart(mainChart,{
   type:'bar',
   data:{
-   labels:["รายได้"],
+   labels:["เดือนนี้"],
    datasets:[
-    {label:"เดือนนี้",data:[rev],backgroundColor:"#ef4b3f"},
-    {label:"เดือนก่อน",data:[prevRev],backgroundColor:"#9ca3af"}
+    {label:"รายได้",data:[rev],backgroundColor:"#16a34a"},
+    {label:"รายจ่าย",data:[exp],backgroundColor:"#dc2626"},
+    {label:"กำไร",data:[profit],backgroundColor:"#ef4b3f"}
    ]
   }
  });
+
 }
 
 function renderYearTrend(){
@@ -597,6 +677,12 @@ function loadMonth(){
  walkin.value=d.customers?.walkin||"";
  home.value=d.customers?.home||"";
 
+ expFuel.value=d.expenses?.fuel||"";
+ expRepair.value=d.expenses?.repair||"";
+ expSalary.value=d.expenses?.salary||"";
+ expOther.value=d.expenses?.other||"";
+
+
  staffTable.innerHTML=`<tr><th>ชื่อ</th><th>ทำงาน</th><th>หยุด</th><th>เตือน</th></tr>`;
  (d.staff||[]).forEach(s=>{
   staffTable.innerHTML+=`
@@ -631,6 +717,12 @@ function clearForm(){
  revOther.value="";
  walkin.value="";
  home.value="";
+
+ expFuel.value="";
+ expRepair.value="";
+ expSalary.value="";
+ expOther.value="";
+
  staffTable.innerHTML=`<tr><th>ชื่อ</th><th>ทำงาน</th><th>หยุด</th><th>เตือน</th></tr>`;
 }
 
@@ -667,6 +759,24 @@ function showLoader(){
 <script>
 if ("serviceWorker" in navigator) {
   navigator.serviceWorker.register("sw.js");
+}
+</script>
+
+
+<script>
+function countUp(el,value){
+ let start=0;
+ const dur=600;
+ const step=value/(dur/16);
+
+ const i=setInterval(()=>{
+  start+=step;
+  if(start>=value){
+   start=value;
+   clearInterval(i);
+  }
+  el.innerText=Math.floor(start).toLocaleString();
+ },16);
 }
 </script>
 
