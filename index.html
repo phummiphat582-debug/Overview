@@ -3,7 +3,6 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<meta name="screen-orientation" content="landscape">
 <title>ATV Executive Dashboard</title>
 <script src="https://cdn.jsdelivr.net/npm/chart.js">
 function showToast(msg){
@@ -374,6 +373,7 @@ section{
 
 <div class="left-col">
   <div class="brand">ATV Dashboard</div>
+  <button class="menu-btn" onclick="toggleOrientation()">🔄 สลับแนวหน้าจอ</button>
   <button class="menu-btn active" onclick="show('dashboard',this)">🏠 ภาพรวม</button>
   <button class="menu-btn" onclick="show('detail',this)">📝 รายละเอียดรายเดือน</button>
 </div>
@@ -668,6 +668,31 @@ function showLoader(){
 <script>
 if ("serviceWorker" in navigator) {
   navigator.serviceWorker.register("sw.js");
+}
+</script>
+
+
+<script>
+let landscape = true;
+
+async function toggleOrientation(){
+  if (!screen.orientation) {
+    alert("อุปกรณ์นี้ไม่รองรับการหมุนแบบบังคับ");
+    return;
+  }
+
+  try {
+    if(landscape){
+      await screen.orientation.lock("portrait");
+      showToast("เปลี่ยนเป็นแนวตั้ง");
+    }else{
+      await screen.orientation.lock("landscape");
+      showToast("เปลี่ยนเป็นแนวนอน");
+    }
+    landscape = !landscape;
+  } catch(e){
+    alert("ต้องติดตั้งเป็นแอพก่อน (Add to Home Screen)");
+  }
 }
 </script>
 
