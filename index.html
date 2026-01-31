@@ -4,87 +4,7 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>ATV Executive Dashboard</title>
-<script src="https://cdn.jsdelivr.net/npm/chart.js">
-function showToast(msg){
- const t=document.getElementById("toast");
- t.innerText=msg;
- t.classList.add("show");
- setTimeout(()=>t.classList.remove("show"),2000);
-}
-
-month.onchange=loadMonth;
-
-function loadMonth(){
- const key="ATV_"+month.value;
- const d=JSON.parse(localStorage.getItem(key)||"{}");
-
- maxCar.value=d.cars?.max||"";
- minCar.value=d.cars?.min||"";
- revTour.value=d.revenue?.tour||"";
- revRent.value=d.revenue?.rent||"";
- revOther.value=d.revenue?.other||"";
- walkin.value=d.customers?.walkin||"";
- home.value=d.customers?.home||"";
-
- staffTable.innerHTML=`<tr><th>ชื่อ</th><th>ทำงาน</th><th>หยุด</th><th>เตือน</th></tr>`;
- (d.staff||[]).forEach(s=>{
-  staffTable.innerHTML+=`
-  <tr>
-   <td><input value="${s.name}"></td>
-   <td><input type="number" value="${s.work}"></td>
-   <td><input type="number" value="${s.off}"></td>
-   <td><input type="number" value="${s.warn}"></td>
-  </tr>`;
- });
-}
-
-function deleteMonth(){
- if(!month.value)return;
- const key="ATV_"+month.value;
- if(confirm("ลบข้อมูลเดือนนี้?")){
-  localStorage.removeItem(key);
-  showToast("ลบข้อมูลแล้ว");
-  renderDashboard();
-  renderYearTrend();
- }
-}
-
-
-function clearForm(){
- maxCar.value="";
- maxDay.value="";
- minCar.value="";
- minDay.value="";
- revTour.value="";
- revRent.value="";
- revOther.value="";
- walkin.value="";
- home.value="";
- staffTable.innerHTML=`<tr><th>ชื่อ</th><th>ทำงาน</th><th>หยุด</th><th>เตือน</th></tr>`;
-}
-
-
-document.querySelectorAll("button").forEach(btn=>{
- btn.addEventListener("click",e=>{
-  const r=document.createElement("span");
-  r.className="ripple";
-
-  const rect=btn.getBoundingClientRect();
-  r.style.left=e.clientX-rect.left+"px";
-  r.style.top=e.clientY-rect.top+"px";
-
-  btn.appendChild(r);
-  setTimeout(()=>r.remove(),600);
- });
-});
-
-
-function showLoader(){
- loader.classList.add("show");
- setTimeout(()=>loader.classList.remove("show"),600);
-}
-
-</script>
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 
 <style>
 :root{
@@ -100,7 +20,7 @@ function showLoader(){
   --radius:18px;
 }
 *{box-sizing:border-box;font-family:Tahoma,Arial}
-body{margin:0;background:var(--bg);color:var(--text)}
+body{margin:0;background:var(--bg);color:var(--text);overflow-x:hidden}
 
 .app{display:grid;grid-template-columns:260px 1fr;min-height:100vh}
 
@@ -122,7 +42,12 @@ body{margin:0;background:var(--bg);color:var(--text)}
 }
 .menu-btn.active{background:var(--primary);color:#fff;font-weight:bold}
 
-.main{padding:28px}
+/* FIX main container */
+.main{
+  padding:16px;
+  max-width:100vw;
+  overflow-x:hidden;
+}
 
 .card{
   background:var(--card);
@@ -130,15 +55,26 @@ body{margin:0;background:var(--bg);color:var(--text)}
   padding:22px;
   box-shadow:var(--shadow);
   margin-bottom:22px;
+  width:100%;
+  max-width:100%;
 }
 
 .title{font-size:22px;font-weight:bold}
 .subtitle{color:var(--muted)}
 
+/* SAFE GRID */
 .kpi-row{
   display:grid;
-  grid-template-columns:repeat(auto-fit,minmax(220px,1fr));
+  grid-template-columns:1fr;
   gap:16px;
+}
+
+@media(min-width:600px){
+  .kpi-row{grid-template-columns:repeat(2,1fr);}
+}
+
+@media(min-width:1000px){
+  .kpi-row{grid-template-columns:repeat(3,1fr);}
 }
 
 .kpi{
@@ -147,9 +83,6 @@ body{margin:0;background:var(--bg);color:var(--text)}
   padding:18px;
   border-left:8px solid transparent;
 }
-.kpi.good{border-color:var(--green)}
-.kpi.warn{border-color:var(--yellow)}
-.kpi.danger{border-color:var(--red)}
 .kpi .label{font-size:12px;opacity:.85}
 .kpi .value{font-size:22px;font-weight:bold;margin-top:6px}
 
@@ -192,21 +125,7 @@ td,th{
   .left-col{display:none}
 }
 
-button.primary{
-  transition:.15s;
-}
-button.primary:active{
-  transform:scale(.92);
-  opacity:.85;
-}
-.menu-btn{
-  transition:.15s;
-}
-.menu-btn:active{
-  transform:scale(.95);
-}
-
-/* toast popup */
+/* toast */
 .toast{
   position:fixed;
   bottom:30px;
@@ -217,7 +136,6 @@ button.primary:active{
   padding:14px 24px;
   border-radius:14px;
   font-weight:bold;
-  box-shadow:0 12px 30px rgba(0,0,0,.15);
   opacity:0;
   transition:.3s;
 }
@@ -226,124 +144,11 @@ button.primary:active{
   transform:translateX(-50%) scale(1);
 }
 
-
-button.primary,
-.menu-btn{
-  transition:transform .12s ease, box-shadow .12s ease, opacity .12s ease;
-  box-shadow:0 6px 14px rgba(0,0,0,.12);
-}
-
-button.primary:active,
-.menu-btn:active{
-  transform:scale(.92);
-  box-shadow:0 2px 4px rgba(0,0,0,.15);
-  opacity:.85;
-}
-
-button.primary{
-  position:relative;
-  overflow:hidden;
-}
-
-button.primary::after{
-  content:"";
-  position:absolute;
-  width:0;
-  height:0;
-  background:rgba(255,255,255,.4);
-  border-radius:50%;
-  transform:translate(-50%,-50%);
-  left:50%;
-  top:50%;
-  opacity:0;
-}
-
-button.primary:active::after{
-  width:200px;
-  height:200px;
-  opacity:1;
-  transition:.4s;
-}
-
-
-/* spring button */
-button.primary,
-.menu-btn{
-  position:relative;
-  overflow:hidden;
-  transition:
-    transform .18s cubic-bezier(.34,1.56,.64,1),
-    box-shadow .18s ease,
-    opacity .18s ease;
-  box-shadow:0 10px 22px rgba(0,0,0,.12);
-}
-
-button.primary:active,
-.menu-btn:active{
-  transform:scale(.88);
-  box-shadow:0 2px 6px rgba(0,0,0,.2);
-  opacity:.9;
-}
-
-/* ripple */
-.ripple{
-  position:absolute;
-  border-radius:50%;
-  background:rgba(255,255,255,.5);
-  transform:scale(0);
-  animation:ripple .6s linear;
-  pointer-events:none;
-}
-
-@keyframes ripple{
-  to{
-    transform:scale(6);
-    opacity:0;
-  }
-}
-
-/* popup animation */
-.toast{
-  animation:toastIn .4s cubic-bezier(.34,1.56,.64,1);
-}
-
-@keyframes toastIn{
-  from{transform:translateX(-50%) translateY(20px) scale(.8);opacity:0;}
-  to{transform:translateX(-50%) translateY(0) scale(1);opacity:1;}
-}
-
-/* card hover */
-.card{
-  transition:transform .25s ease, box-shadow .25s ease;
-}
-.card:hover{
-  transform:translateY(-4px);
-  box-shadow:0 20px 40px rgba(0,0,0,.12);
-}
-
-
-/* page transition */
-section{
-  animation:pageIn .35s ease;
-}
-@keyframes pageIn{
-  from{opacity:0;transform:translateY(12px);}
-  to{opacity:1;transform:translateY(0);}
-}
-
-/* glass popup */
-.toast{
-  backdrop-filter:blur(14px);
-  background:rgba(22,163,74,.85);
-  border:1px solid rgba(255,255,255,.3);
-}
-
 /* loader */
 .loader{
  position:fixed;
  inset:0;
  background:rgba(255,255,255,.6);
- backdrop-filter:blur(6px);
  display:flex;
  align-items:center;
  justify-content:center;
@@ -364,11 +169,13 @@ section{
 @keyframes spin{to{transform:rotate(360deg);}}
 
 </style>
+
 <link rel="manifest" href="manifest.json">
 <meta name="theme-color" content="#ef4b3f">
 </head>
 
 <body>
+
 <div class="app">
 
 <div class="left-col">
@@ -392,189 +199,26 @@ section{
 </div>
 
 <div class="kpi-row">
-  <div class="kpi" id="kpiCarMax">
-    <div class="label">รถพร้อม (มากสุด)</div>
-    <div class="value" id="maxTxt">-</div>
-  </div>
-  <div class="kpi" id="kpiCarMin">
-    <div class="label">รถพร้อม (น้อยสุด)</div>
-    <div class="value" id="minTxt">-</div>
-  </div>
-  <div class="kpi" id="kpiCarDiff">
-    <div class="label">เทียบเดือนก่อน</div>
-    <div class="value" id="carDiffTxt">-</div>
-  </div>
-  <div class="kpi" id="kpiRev">
-    <div class="label">รายได้รวม</div>
-    <div class="value" id="revTxt">-</div>
-  </div>
-  <div class="kpi" id="kpiRevDiff">
-    <div class="label">รายได้เทียบเดือนก่อน</div>
-    <div class="value" id="revDiffTxt">-</div>
-  </div>
-</div>
-
-<div class="card">
-  <canvas id="mainChart" height="120"></canvas>
-</div>
-
-<div class="kpi-row">
-  <div class="kpi" id="kpiCust">
-    <div class="label">ลูกค้า Walk-in / บ้าน</div>
-    <div class="value" id="custTxt">-</div>
-  </div>
-  <div class="kpi" id="kpiStaff">
-    <div class="label">พนักงาน (ทำงาน/หยุด/เตือน)</div>
-    <div class="value" id="staffTxt">-</div>
-  </div>
-</div>
-
-<div class="card">
-  <h3>แนวโน้มรายปี</h3>
-  <canvas id="yearChart" height="120"></canvas>
-</div>
-
-</section>
-
-<section id="detail" style="display:none">
-
-<div class="card">
-  <label>เลือกเดือน</label>
-  <input type="month" id="month">
-</div>
-
-<div class="card">
-  <h3>รถพร้อม</h3>
-  <label>มากสุด</label><input id="maxCar">
-  <label>วัน</label><input id="maxDay">
-  <label>น้อยสุด</label><input id="minCar">
-  <label>วัน</label><input id="minDay">
-</div>
-
-<div class="card">
-  <h3>รายได้</h3>
-  <label>ทัวร์</label><input id="revTour">
-  <label>เช่า</label><input id="revRent">
-  <label>อื่น</label><input id="revOther">
-</div>
-
-<div class="card">
-  <h3>ลูกค้า</h3>
-  <label>Walk-in</label><input id="walkin">
-  <label>บ้าน</label><input id="home">
-</div>
-
-<div class="card">
-  <h3>เจ้าหน้าที่</h3>
-  <table id="staffTable">
-    <tr><th>ชื่อ</th><th>ทำงาน</th><th>หยุด</th><th>เตือน</th></tr>
-  </table>
-  <button class="primary" onclick="addStaff()">+ เพิ่ม</button>
-</div>
-
-<div class="card">
-  <button class="primary" onclick="saveMonth()">บันทึกข้อมูล</button>
-<button class="primary" style="background:#dc2626" onclick="deleteMonth()">ลบข้อมูลเดือนนี้</button>
+  <div class="kpi"><div class="label">รถพร้อม (มากสุด)</div><div class="value" id="maxTxt">-</div></div>
+  <div class="kpi"><div class="label">รถพร้อม (น้อยสุด)</div><div class="value" id="minTxt">-</div></div>
+  <div class="kpi"><div class="label">รายได้รวม</div><div class="value" id="revTxt">-</div></div>
 </div>
 
 </section>
 
 </div>
 </div>
+
+<div class="toast" id="toast">บันทึกสำเร็จ ✓</div>
+<div class="loader" id="loader"><div class="spinner"></div></div>
 
 <script>
-let chart, yearChartObj;
-
 function show(id,btn){
  document.querySelectorAll("section").forEach(s=>s.style.display="none");
  document.getElementById(id).style.display="block";
  document.querySelectorAll(".menu-btn").forEach(b=>b.classList.remove("active"));
  btn.classList.add("active");
- if(id==="dashboard"){renderDashboard();renderYearTrend();}
 }
-
-function addStaff(){
- staffTable.innerHTML+=`
- <tr>
-  <td><input></td>
-  <td><input type="number"></td>
-  <td><input type="number"></td>
-  <td><input type="number"></td>
- </tr>`;
-}
-
-function saveMonth(){
- const key="ATV_"+month.value;
- const staff=[...staffTable.querySelectorAll("tr")].slice(1).map(r=>{
-  const i=r.querySelectorAll("input");
-  return{name:i[0].value,work:+i[1].value,off:+i[2].value,warn:+i[3].value};
- });
- const data={
-  cars:{max:+maxCar.value,min:+minCar.value},
-  revenue:{tour:+revTour.value,rent:+revRent.value,other:+revOther.value},
-  customers:{walkin:+walkin.value,home:+home.value},
-  staff
- };
- localStorage.setItem(key,JSON.stringify(data));
- showLoader();
- showToast("บันทึกสำเร็จ ✓");
- clearForm();
-}
-
-function renderDashboard(){
- const m=dashMonth.value;if(!m)return;
- const cur=JSON.parse(localStorage.getItem("ATV_"+m)||"{}");
- const prev=new Date(m+"-01");prev.setMonth(prev.getMonth()-1);
- const pre=JSON.parse(localStorage.getItem("ATV_"+prev.toISOString().slice(0,7))||"{}");
-
- const rev=(cur.revenue?.tour||0)+(cur.revenue?.rent||0)+(cur.revenue?.other||0);
- const prevRev=(pre.revenue?.tour||0)+(pre.revenue?.rent||0)+(pre.revenue?.other||0);
-
- maxTxt.innerText=`${cur.cars?.max||0} คัน`;
- minTxt.innerText=`${cur.cars?.min||0} คัน`;
- revTxt.innerText=rev.toLocaleString()+" บาท";
- revDiffTxt.innerText=prevRev?(((rev-prevRev)/prevRev)*100).toFixed(1)+"%":"-";
- custTxt.innerText=`${cur.customers?.walkin||0} / ${cur.customers?.home||0}`;
-
- const st=cur.staff||[];
- staffTxt.innerText=`${st.reduce((a,b)=>a+b.work,0)} / ${st.reduce((a,b)=>a+b.off,0)} / ${st.reduce((a,b)=>a+b.warn,0)}`;
-
- if(chart)chart.destroy();
- chart=new Chart(mainChart,{
-  type:'bar',
-  data:{
-   labels:["รายได้"],
-   datasets:[
-    {label:"เดือนนี้",data:[rev],backgroundColor:"#ef4b3f"},
-    {label:"เดือนก่อน",data:[prevRev],backgroundColor:"#9ca3af"}
-   ]
-  }
- });
-}
-
-function renderYearTrend(){
- const keys=Object.keys(localStorage).filter(k=>k.startsWith("ATV_")).sort();
- const labels=[],revArr=[];
- keys.forEach(k=>{
-  const d=JSON.parse(localStorage.getItem(k));
-  labels.push(k.replace("ATV_",""));
-  revArr.push((d.revenue?.tour||0)+(d.revenue?.rent||0)+(d.revenue?.other||0));
- });
- if(yearChartObj)yearChartObj.destroy();
- yearChartObj=new Chart(document.getElementById("yearChart"),{
-  type:'line',
-  data:{
-   labels,
-   datasets:[
-    {label:"รายได้รวม",data:revArr,borderColor:"#ef4b3f",tension:.4}
-   ]
-  }
- });
-}
-
-dashMonth.value=new Date().toISOString().slice(0,7);
-renderDashboard();
-renderYearTrend();
 
 function showToast(msg){
  const t=document.getElementById("toast");
@@ -583,90 +227,8 @@ function showToast(msg){
  setTimeout(()=>t.classList.remove("show"),2000);
 }
 
-month.onchange=loadMonth;
-
-function loadMonth(){
- const key="ATV_"+month.value;
- const d=JSON.parse(localStorage.getItem(key)||"{}");
-
- maxCar.value=d.cars?.max||"";
- minCar.value=d.cars?.min||"";
- revTour.value=d.revenue?.tour||"";
- revRent.value=d.revenue?.rent||"";
- revOther.value=d.revenue?.other||"";
- walkin.value=d.customers?.walkin||"";
- home.value=d.customers?.home||"";
-
- staffTable.innerHTML=`<tr><th>ชื่อ</th><th>ทำงาน</th><th>หยุด</th><th>เตือน</th></tr>`;
- (d.staff||[]).forEach(s=>{
-  staffTable.innerHTML+=`
-  <tr>
-   <td><input value="${s.name}"></td>
-   <td><input type="number" value="${s.work}"></td>
-   <td><input type="number" value="${s.off}"></td>
-   <td><input type="number" value="${s.warn}"></td>
-  </tr>`;
- });
-}
-
-function deleteMonth(){
- if(!month.value)return;
- const key="ATV_"+month.value;
- if(confirm("ลบข้อมูลเดือนนี้?")){
-  localStorage.removeItem(key);
-  showToast("ลบข้อมูลแล้ว");
-  renderDashboard();
-  renderYearTrend();
- }
-}
-
-
-function clearForm(){
- maxCar.value="";
- maxDay.value="";
- minCar.value="";
- minDay.value="";
- revTour.value="";
- revRent.value="";
- revOther.value="";
- walkin.value="";
- home.value="";
- staffTable.innerHTML=`<tr><th>ชื่อ</th><th>ทำงาน</th><th>หยุด</th><th>เตือน</th></tr>`;
-}
-
-
-document.querySelectorAll("button").forEach(btn=>{
- btn.addEventListener("click",e=>{
-  const r=document.createElement("span");
-  r.className="ripple";
-
-  const rect=btn.getBoundingClientRect();
-  r.style.left=e.clientX-rect.left+"px";
-  r.style.top=e.clientY-rect.top+"px";
-
-  btn.appendChild(r);
-  setTimeout(()=>r.remove(),600);
- });
-});
-
-
-function showLoader(){
- loader.classList.add("show");
- setTimeout(()=>loader.classList.remove("show"),600);
-}
-
-</script>
-
-<div class="toast" id="toast">บันทึกสำเร็จ ✓</div>
-
-<div class="loader" id="loader">
-  <div class="spinner"></div>
-</div>
-
-
-<script>
 if ("serviceWorker" in navigator) {
-  navigator.serviceWorker.register("sw.js");
+ navigator.serviceWorker.register("sw.js");
 }
 </script>
 
