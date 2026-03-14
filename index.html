@@ -1,415 +1,137 @@
+```html
 <!DOCTYPE html>
 <html lang="th">
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>ATV Executive Dashboard</title>
-<script src="https://cdn.jsdelivr.net/npm/chart.js">
-function showToast(msg){
- const t=document.getElementById("toast");
- t.innerText=msg;
- t.classList.add("show");
- setTimeout(()=>t.classList.remove("show"),2000);
-}
 
-month.onchange=loadMonth;
-
-function loadMonth(){
- const key="ATV_"+month.value;
- const d=JSON.parse(localStorage.getItem(key)||"{}");
-
- maxCar.value=d.cars?.max||"";
- minCar.value=d.cars?.min||"";
- revTour.value=d.revenue?.tour||"";
- revRent.value=d.revenue?.rent||"";
- revOther.value=d.revenue?.other||"";
- walkin.value=d.customers?.walkin||"";
- home.value=d.customers?.home||"";
-
- expFuel.value=d.expenses?.fuel||"";
- expRepair.value=d.expenses?.repair||"";
- expSalary.value=d.expenses?.salary||"";
- expOther.value=d.expenses?.other||"";
-
-
- staffTable.innerHTML=`<tr><th>ชื่อ</th><th>ทำงาน</th><th>หยุด</th><th>เตือน</th></tr>`;
- (d.staff||[]).forEach(s=>{
-  staffTable.innerHTML+=`
-  <tr>
-   <td><input value="${s.name}"></td>
-   <td><input type="number" value="${s.work}"></td>
-   <td><input type="number" value="${s.off}"></td>
-   <td><input type="number" value="${s.warn}"></td>
-  </tr>`;
- });
-}
-
-function deleteMonth(){
- if(!month.value)return;
- const key="ATV_"+month.value;
- if(confirm("ลบข้อมูลเดือนนี้?")){
-  localStorage.removeItem(key);
-  showToast("ลบข้อมูลแล้ว");
-  renderDashboard();
-  renderYearTrend();
- }
-}
-
-
-function clearForm(){
- maxCar.value="";
- maxDay.value="";
- minCar.value="";
- minDay.value="";
- revTour.value="";
- revRent.value="";
- revOther.value="";
- walkin.value="";
- home.value="";
-
- expFuel.value="";
- expRepair.value="";
- expSalary.value="";
- expOther.value="";
-
- staffTable.innerHTML=`<tr><th>ชื่อ</th><th>ทำงาน</th><th>หยุด</th><th>เตือน</th></tr>`;
-}
-
-
-document.querySelectorAll("button").forEach(btn=>{
- btn.addEventListener("click",e=>{
-  const r=document.createElement("span");
-  r.className="ripple";
-
-  const rect=btn.getBoundingClientRect();
-  r.style.left=e.clientX-rect.left+"px";
-  r.style.top=e.clientY-rect.top+"px";
-
-  btn.appendChild(r);
-  setTimeout(()=>r.remove(),600);
- });
-});
-
-
-function showLoader(){
- loader.classList.add("show");
- setTimeout(()=>loader.classList.remove("show"),600);
-}
-
-</script>
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 
 <style>
 :root{
-  --primary:#ef4b3f;
-  --green:#16a34a;
-  --yellow:#f59e0b;
-  --red:#dc2626;
-  --bg:#f4f6f8;
-  --card:#ffffff;
-  --text:#1f2937;
-  --muted:#6b7280;
-  --shadow:0 12px 30px rgba(0,0,0,.08);
-  --radius:18px;
+--primary:#ef4b3f;
+--green:#16a34a;
+--yellow:#f59e0b;
+--red:#dc2626;
+--bg:#f4f6f8;
+--card:#ffffff;
+--text:#1f2937;
+--shadow:0 12px 30px rgba(0,0,0,.08);
+--radius:18px;
 }
-*{box-sizing:border-box;font-family:Tahoma,Arial}
-body{margin:0;background:var(--bg);color:var(--text)}
 
-.app{display:grid;grid-template-columns:260px 1fr;min-height:100vh}
-
-.left-col{
-  background:#fff;
-  padding:24px 18px;
-  box-shadow:var(--shadow);
+body{
+margin:0;
+font-family:Tahoma;
+background:var(--bg);
+color:var(--text);
 }
-.brand{font-size:20px;font-weight:bold;margin-bottom:32px}
+
+.app{
+display:grid;
+grid-template-columns:260px 1fr;
+min-height:100vh;
+}
+
+.left{
+background:#fff;
+padding:20px;
+box-shadow:var(--shadow);
+}
+
 .menu-btn{
-  width:100%;
-  padding:14px 16px;
-  margin-bottom:10px;
-  border:none;
-  border-radius:14px;
-  background:#f3f4f6;
-  text-align:left;
-  cursor:pointer
+width:100%;
+padding:12px;
+margin-bottom:10px;
+border:none;
+border-radius:12px;
+cursor:pointer;
+background:#f3f4f6;
 }
-.menu-btn.active{background:var(--primary);color:#fff;font-weight:bold}
 
-.main{padding:28px}
+.menu-btn.active{
+background:var(--primary);
+color:#fff;
+}
+
+.main{
+padding:25px;
+}
 
 .card{
-  background:var(--card);
-  border-radius:var(--radius);
-  padding:22px;
-  box-shadow:var(--shadow);
-  margin-bottom:22px;
+background:var(--card);
+border-radius:var(--radius);
+padding:20px;
+box-shadow:var(--shadow);
+margin-bottom:20px;
 }
 
-.title{font-size:22px;font-weight:bold}
-.subtitle{color:var(--muted)}
-
 .kpi-row{
-  display:grid;
-  grid-template-columns:repeat(auto-fit,minmax(240px,1fr));
-  gap:28px;
-  margin-top:18px;
-  margin-bottom:18px;
+display:grid;
+grid-template-columns:repeat(auto-fit,minmax(220px,1fr));
+gap:20px;
 }
 
 .kpi{
-  background:#f9fafb;
-  border-radius:20px;
-  padding:24px;
-  border-left:8px solid transparent;
+padding:20px;
+border-radius:15px;
+background:#f9fafb;
+border-left:8px solid transparent;
 }
-.kpi.good{border-color:var(--green)}
-.kpi.warn{border-color:var(--yellow)}
-.kpi.danger{border-color:var(--red)}
-.kpi .label{font-size:12px;opacity:.85}
-.kpi .value{font-size:22px;font-weight:bold;margin-top:6px}
 
-label{font-size:12px;font-weight:bold}
+.kpi.good{border-color:var(--green);}
+.kpi.warn{border-color:var(--yellow);}
+.kpi.danger{border-color:var(--red);}
+
+.value{
+font-size:22px;
+font-weight:bold;
+}
+
 input{
-  width:100%;
-  padding:12px;
-  margin-top:6px;
-  border-radius:12px;
-  border:1px solid #e5e7eb
+width:100%;
+padding:10px;
+border-radius:10px;
+border:1px solid #ddd;
+margin-top:5px;
 }
 
 button.primary{
-  margin-top:16px;
-  width:100%;
-  padding:14px;
-  border:none;
-  border-radius:14px;
-  background:var(--primary);
-  color:#fff;
-  font-weight:bold;
-  cursor:pointer
+width:100%;
+padding:14px;
+border:none;
+border-radius:12px;
+background:var(--primary);
+color:white;
+font-weight:bold;
+cursor:pointer;
+margin-top:10px;
 }
 
 table{
-  width:100%;
-  border-collapse:separate;
-  border-spacing:0 8px;
-  font-size:13px
+width:100%;
+border-collapse:collapse;
 }
+
 td,th{
-  background:#fff;
-  padding:10px;
-  border-radius:10px;
-  box-shadow:var(--shadow)
-}
-
-@media(max-width:900px){
-  .app{grid-template-columns:1fr}
-  .left-col{display:none}
-}
-
-button.primary{
-  transition:.15s;
-}
-button.primary:active{
-  transform:scale(.92);
-  opacity:.85;
-}
-.menu-btn{
-  transition:.15s;
-}
-.menu-btn:active{
-  transform:scale(.95);
-}
-
-/* toast popup */
-.toast{
-  position:fixed;
-  bottom:30px;
-  left:50%;
-  transform:translateX(-50%) scale(.8);
-  background:#16a34a;
-  color:#fff;
-  padding:14px 24px;
-  border-radius:14px;
-  font-weight:bold;
-  box-shadow:0 12px 30px rgba(0,0,0,.15);
-  opacity:0;
-  transition:.3s;
-}
-.toast.show{
-  opacity:1;
-  transform:translateX(-50%) scale(1);
-}
-
-
-button.primary,
-.menu-btn{
-  transition:transform .12s ease, box-shadow .12s ease, opacity .12s ease;
-  box-shadow:0 6px 14px rgba(0,0,0,.12);
-}
-
-button.primary:active,
-.menu-btn:active{
-  transform:scale(.92);
-  box-shadow:0 2px 4px rgba(0,0,0,.15);
-  opacity:.85;
-}
-
-button.primary{
-  position:relative;
-  overflow:hidden;
-}
-
-button.primary::after{
-  content:"";
-  position:absolute;
-  width:0;
-  height:0;
-  background:rgba(255,255,255,.4);
-  border-radius:50%;
-  transform:translate(-50%,-50%);
-  left:50%;
-  top:50%;
-  opacity:0;
-}
-
-button.primary:active::after{
-  width:200px;
-  height:200px;
-  opacity:1;
-  transition:.4s;
-}
-
-
-/* spring button */
-button.primary,
-.menu-btn{
-  position:relative;
-  overflow:hidden;
-  transition:
-    transform .18s cubic-bezier(.34,1.56,.64,1),
-    box-shadow .18s ease,
-    opacity .18s ease;
-  box-shadow:0 10px 22px rgba(0,0,0,.12);
-}
-
-button.primary:active,
-.menu-btn:active{
-  transform:scale(.88);
-  box-shadow:0 2px 6px rgba(0,0,0,.2);
-  opacity:.9;
-}
-
-/* ripple */
-.ripple{
-  position:absolute;
-  border-radius:50%;
-  background:rgba(255,255,255,.5);
-  transform:scale(0);
-  animation:ripple .6s linear;
-  pointer-events:none;
-}
-
-@keyframes ripple{
-  to{
-    transform:scale(6);
-    opacity:0;
-  }
-}
-
-/* popup animation */
-.toast{
-  animation:toastIn .4s cubic-bezier(.34,1.56,.64,1);
-}
-
-@keyframes toastIn{
-  from{transform:translateX(-50%) translateY(20px) scale(.8);opacity:0;}
-  to{transform:translateX(-50%) translateY(0) scale(1);opacity:1;}
-}
-
-/* card hover */
-.card{
-  transition:transform .25s ease, box-shadow .25s ease;
-}
-.card:hover{
-  transform:translateY(-4px);
-  box-shadow:0 20px 40px rgba(0,0,0,.12);
-}
-
-
-/* page transition */
-section{
-  animation:pageIn .35s ease;
-}
-@keyframes pageIn{
-  from{opacity:0;transform:translateY(12px);}
-  to{opacity:1;transform:translateY(0);}
-}
-
-/* glass popup */
-.toast{
-  backdrop-filter:blur(14px);
-  background:rgba(22,163,74,.85);
-  border:1px solid rgba(255,255,255,.3);
-}
-
-/* loader */
-.loader{
- position:fixed;
- inset:0;
- background:rgba(255,255,255,.6);
- backdrop-filter:blur(6px);
- display:flex;
- align-items:center;
- justify-content:center;
- opacity:0;
- pointer-events:none;
- transition:.3s;
-}
-.loader.show{opacity:1;pointer-events:auto;}
-
-.spinner{
- width:40px;
- height:40px;
- border:4px solid #eee;
- border-top:4px solid #ef4b3f;
- border-radius:50%;
- animation:spin 1s linear infinite;
-}
-@keyframes spin{to{transform:rotate(360deg);}}
-
-
-/* KPI animation */
-.kpi{
-  animation:kpiIn .5s cubic-bezier(.34,1.56,.64,1);
-}
-
-@keyframes kpiIn{
-  from{opacity:0;transform:translateY(18px) scale(.96);}
-  to{opacity:1;transform:translateY(0) scale(1);}
-}
-
-/* chart animation */
-canvas{
- animation:chartIn .6s ease;
-}
-
-@keyframes chartIn{
- from{opacity:0;transform:translateY(20px);}
- to{opacity:1;transform:translateY(0);}
+padding:8px;
 }
 
 </style>
-<link rel="manifest" href="manifest.json">
-<meta name="theme-color" content="#ef4b3f">
 </head>
 
 <body>
+
 <div class="app">
 
-<div class="left-col">
-  <div class="brand">ATV Dashboard</div>
-  <button class="menu-btn active" onclick="show('dashboard',this)">🏠 ภาพรวม</button>
-  <button class="menu-btn" onclick="show('detail',this)">📝 รายละเอียดรายเดือน</button>
+<div class="left">
+
+<h3>ATV Dashboard</h3>
+
+<button class="menu-btn active" onclick="showPage('dashboard',this)">ภาพรวม</button>
+<button class="menu-btn" onclick="showPage('detail',this)">บันทึกข้อมูล</button>
+
 </div>
 
 <div class="main">
@@ -417,62 +139,40 @@ canvas{
 <section id="dashboard">
 
 <div class="card">
-  <div class="title">ภาพรวมกิจการ ATV</div>
-  <div class="subtitle">สรุปสถานะและสัญญาณเตือน</div>
+<h2>ภาพรวมกิจการ</h2>
 </div>
 
 <div class="card">
-  <label>เลือกเดือน</label>
-  <input type="month" id="dashMonth" onchange="renderDashboard();renderYearTrend()">
+<label>เลือกเดือน</label>
+<input type="month" id="dashMonth" onchange="renderDashboard()">
 </div>
 
 <div class="kpi-row">
-  <div class="kpi" id="kpiCarMax">
-    <div class="label">รถพร้อม (มากสุด)</div>
-    <div class="value" id="maxTxt">-</div>
-  </div>
-  <div class="kpi" id="kpiCarMin">
-    <div class="label">รถพร้อม (น้อยสุด)</div>
-    <div class="value" id="minTxt">-</div>
-  </div>
-  <div class="kpi" id="kpiCarDiff">
-    <div class="label">เทียบเดือนก่อน</div>
-    <div class="value" id="carDiffTxt">-</div>
-  </div>
-  <div class="kpi" id="kpiRev">
-    <div class="label">รายได้รวม</div>
-    <div class="value" id="revTxt">-</div>
-  </div>
-  <div class="kpi" id="kpiRevDiff">
-    <div class="label">รายได้เทียบเดือนก่อน</div>
-    <div class="value" id="revDiffTxt">-</div>
-  </div>
 
-  <div class="kpi" id="kpiProfit">
-    <div class="label">กำไรสุทธิ</div>
-    <div class="value" id="profitTxt">-</div>
-  </div>
+<div class="kpi" id="kpiRev">
+<div>รายได้รวม</div>
+<div class="value" id="revTxt">-</div>
+</div>
+
+<div class="kpi" id="kpiProfit">
+<div>กำไรสุทธิ</div>
+<div class="value" id="profitTxt">-</div>
+</div>
+
+<div class="kpi">
+<div>ลูกค้า Walkin / บ้าน</div>
+<div class="value" id="custTxt">-</div>
+</div>
+
+<div class="kpi">
+<div>พนักงาน (ทำงาน/หยุด/เตือน)</div>
+<div class="value" id="staffTxt">-</div>
+</div>
 
 </div>
 
 <div class="card">
-  <canvas id="mainChart" height="120"></canvas>
-</div>
-
-<div class="kpi-row">
-  <div class="kpi" id="kpiCust">
-    <div class="label">ลูกค้า Walk-in / บ้าน</div>
-    <div class="value" id="custTxt">-</div>
-  </div>
-  <div class="kpi" id="kpiStaff">
-    <div class="label">พนักงาน (ทำงาน/หยุด/เตือน)</div>
-    <div class="value" id="staffTxt">-</div>
-  </div>
-</div>
-
-<div class="card">
-  <h3>แนวโน้มรายปี</h3>
-  <canvas id="yearChart" height="120"></canvas>
+<canvas id="mainChart"></canvas>
 </div>
 
 </section>
@@ -480,305 +180,243 @@ canvas{
 <section id="detail" style="display:none">
 
 <div class="card">
-  <label>เลือกเดือน</label>
-  <input type="month" id="month">
+<label>เลือกเดือน</label>
+<input type="month" id="month">
 </div>
 
 <div class="card">
-  <h3>รถพร้อม</h3>
-  <label>มากสุด</label><input id="maxCar">
-  <label>วัน</label><input id="maxDay">
-  <label>น้อยสุด</label><input id="minCar">
-  <label>วัน</label><input id="minDay">
+<h3>รายได้</h3>
+
+<label>Tour</label>
+<input id="revTour">
+
+<label>Rent</label>
+<input id="revRent">
+
+<label>Other</label>
+<input id="revOther">
+
 </div>
 
 <div class="card">
-  <h3>รายได้</h3>
-  <label>ทัวร์</label><input id="revTour">
-  <label>เช่า</label><input id="revRent">
-  <label>อื่น</label><input id="revOther">
-</div>
+<h3>รายจ่าย</h3>
 
+<label>Fuel</label>
+<input id="expFuel">
 
-<div class="card">
-  <h3>รายจ่าย</h3>
-  <label>ค่าน้ำมัน</label><input id="expFuel">
-  <label>ค่าซ่อม</label><input id="expRepair">
-  <label>เงินเดือน</label><input id="expSalary">
-  <label>อื่น ๆ</label><input id="expOther">
-</div>
+<label>Repair</label>
+<input id="expRepair">
 
-<div class="card">
-  <h3>ลูกค้า</h3>
-  <label>Walk-in</label><input id="walkin">
-  <label>บ้าน</label><input id="home">
+<label>Salary</label>
+<input id="expSalary">
+
+<label>Other</label>
+<input id="expOther">
+
 </div>
 
 <div class="card">
-  <h3>เจ้าหน้าที่</h3>
-  <table id="staffTable">
-    <tr><th>ชื่อ</th><th>ทำงาน</th><th>หยุด</th><th>เตือน</th></tr>
-  </table>
-  <button class="primary" onclick="addStaff()">+ เพิ่ม</button>
+<h3>ลูกค้า</h3>
+
+<label>Walkin</label>
+<input id="walkin">
+
+<label>Home</label>
+<input id="home">
+
 </div>
 
 <div class="card">
-  <button class="primary" onclick="saveMonth()">บันทึกข้อมูล</button>
-<button class="primary" style="background:#dc2626" onclick="deleteMonth()">ลบข้อมูลเดือนนี้</button>
+<h3>Staff</h3>
+
+<table id="staffTable">
+<tr>
+<th>ชื่อ</th>
+<th>ทำงาน</th>
+<th>หยุด</th>
+<th>เตือน</th>
+</tr>
+</table>
+
+<button class="primary" onclick="addStaff()">เพิ่มพนักงาน</button>
+
+</div>
+
+<div class="card">
+
+<button class="primary" onclick="saveMonth()">บันทึกข้อมูล</button>
+
 </div>
 
 </section>
 
 </div>
+
 </div>
 
 <script>
-let chart, yearChartObj;
 
-function show(id,btn){
- document.querySelectorAll("section").forEach(s=>s.style.display="none");
- document.getElementById(id).style.display="block";
- document.querySelectorAll(".menu-btn").forEach(b=>b.classList.remove("active"));
- btn.classList.add("active");
- if(id==="dashboard"){renderDashboard();renderYearTrend();}
+let chart
+
+function showPage(id,btn){
+
+document.querySelectorAll("section").forEach(s=>s.style.display="none")
+document.getElementById(id).style.display="block"
+
+document.querySelectorAll(".menu-btn").forEach(b=>b.classList.remove("active"))
+btn.classList.add("active")
+
 }
 
 function addStaff(){
- staffTable.innerHTML+=`
- <tr>
-  <td><input></td>
-  <td><input type="number"></td>
-  <td><input type="number"></td>
-  <td><input type="number"></td>
- </tr>`;
+
+const row=document.createElement("tr")
+
+row.innerHTML=`
+<td><input></td>
+<td><input type="number"></td>
+<td><input type="number"></td>
+<td><input type="number"></td>
+`
+
+staffTable.appendChild(row)
+
 }
 
 function saveMonth(){
- const key="ATV_"+month.value;
- const staff=[...staffTable.querySelectorAll("tr")].slice(1).map(r=>{
-  const i=r.querySelectorAll("input");
-  return{name:i[0].value,work:+i[1].value,off:+i[2].value,warn:+i[3].value};
- });
- const data={
-  cars:{max:+maxCar.value,min:+minCar.value},
-  revenue:{tour:+revTour.value,rent:+revRent.value,other:+revOther.value},
-  expenses:{
-    fuel:+expFuel.value,
-    repair:+expRepair.value,
-    salary:+expSalary.value,
-    other:+expOther.value
-  },
-  customers:{walkin:+walkin.value,home:+home.value},
-  staff
- };
- localStorage.setItem(key,JSON.stringify(data));
- showLoader();
- showToast("บันทึกสำเร็จ ✓");
- clearForm();
+
+if(!month.value){
+alert("เลือกเดือนก่อน")
+return
+}
+
+const staff=[...staffTable.querySelectorAll("tr")]
+.slice(1)
+.map(r=>{
+const i=r.querySelectorAll("input")
+return{
+name:i[0].value,
+work:+i[1].value,
+off:+i[2].value,
+warn:+i[3].value
+}
+})
+
+const data={
+
+revenue:{
+tour:+revTour.value||0,
+rent:+revRent.value||0,
+other:+revOther.value||0
+},
+
+expenses:{
+fuel:+expFuel.value||0,
+repair:+expRepair.value||0,
+salary:+expSalary.value||0,
+other:+expOther.value||0
+},
+
+customers:{
+walkin:+walkin.value||0,
+home:+home.value||0
+},
+
+staff
+
+}
+
+localStorage.setItem("ATV_"+month.value,JSON.stringify(data))
+
+alert("บันทึกสำเร็จ")
+
 }
 
 function renderDashboard(){
- const m=dashMonth.value;if(!m)return;
- const cur=JSON.parse(localStorage.getItem("ATV_"+m)||"{}");
- const prev=new Date(m+"-01");prev.setMonth(prev.getMonth()-1);
- const pre=JSON.parse(localStorage.getItem("ATV_"+prev.toISOString().slice(0,7))||"{}");
 
- const rev=(cur.revenue?.tour||0)+(cur.revenue?.rent||0)+(cur.revenue?.other||0);
- const prevRev=(pre.revenue?.tour||0)+(pre.revenue?.rent||0)+(pre.revenue?.other||0);
+const m=dashMonth.value
+if(!m)return
 
- maxTxt.innerText=`${cur.cars?.max||0} คัน`;
- minTxt.innerText=`${cur.cars?.min||0} คัน`;
- revTxt.innerText=rev.toLocaleString()+" บาท";
+const d=JSON.parse(localStorage.getItem("ATV_"+m)||"{}")
 
- const exp=(cur.expenses?.fuel||0)
- +(cur.expenses?.repair||0)
- +(cur.expenses?.salary||0)
- +(cur.expenses?.other||0);
+const tour=d.revenue?.tour||0
+const rent=d.revenue?.rent||0
+const other=d.revenue?.other||0
 
- const profit=rev-exp;
- profitTxt.innerText=profit.toLocaleString()+" บาท";
+const fuel=d.expenses?.fuel||0
+const repair=d.expenses?.repair||0
+const salary=d.expenses?.salary||0
+const expOther=d.expenses?.other||0
 
- const profitKPI=document.getElementById("kpiProfit");
- profitKPI.classList.remove("good","warn","danger");
+const revenue=tour+rent+other
+const expense=fuel+repair+salary+expOther
+const profit=revenue-expense
 
- if(profit<0){
-  profitKPI.classList.add("danger");
-  showToast("⚠ ขาดทุน!");
- }else if(profit<5000){
-  profitKPI.classList.add("warn");
- }else{
-  profitKPI.classList.add("good");
- }
+revTxt.innerText=revenue.toLocaleString()+" บาท"
+profitTxt.innerText=profit.toLocaleString()+" บาท"
 
- revDiffTxt.innerText=prevRev?(((rev-prevRev)/prevRev)*100).toFixed(1)+"%":"-";
- custTxt.innerText=`${cur.customers?.walkin||0} / ${cur.customers?.home||0}`;
+custTxt.innerText=
+(d.customers?.walkin||0)+" / "+
+(d.customers?.home||0)
 
- const st=cur.staff||[];
- staffTxt.innerText=`${st.reduce((a,b)=>a+b.work,0)} / ${st.reduce((a,b)=>a+b.off,0)} / ${st.reduce((a,b)=>a+b.warn,0)}`;
+const st=d.staff||[]
 
- 
- if(chart)chart.destroy();
- chart=new Chart(mainChart,{
-  type:'bar',
-  data:{
-   labels:["เดือนนี้"],
-   datasets:[
-    {label:"รายได้",data:[rev],backgroundColor:"#16a34a"},
-    {label:"รายจ่าย",data:[exp],backgroundColor:"#dc2626"},
-    {label:"กำไร",data:[profit],backgroundColor:"#ef4b3f"}
-   ]
-  }
- });
+staffTxt.innerText=
+st.reduce((a,b)=>a+b.work,0)+" / "+
+st.reduce((a,b)=>a+b.off,0)+" / "+
+st.reduce((a,b)=>a+b.warn,0)
+
+if(chart)chart.destroy()
+
+chart=new Chart(document.getElementById("mainChart"),{
+
+type:"bar",
+
+data:{
+labels:[
+"Tour",
+"Rent",
+"Other",
+"Fuel",
+"Repair",
+"Salary",
+"Expense Other"
+],
+
+datasets:[{
+label:"รายได้ / รายจ่าย",
+data:[
+tour,
+rent,
+other,
+fuel,
+repair,
+salary,
+expOther
+],
+backgroundColor:[
+"#16a34a",
+"#22c55e",
+"#4ade80",
+"#ef4444",
+"#dc2626",
+"#b91c1c",
+"#991b1b"
+]
+}]
 
 }
 
-function renderYearTrend(){
- const keys=Object.keys(localStorage).filter(k=>k.startsWith("ATV_")).sort();
- const labels=[],revArr=[];
- keys.forEach(k=>{
-  const d=JSON.parse(localStorage.getItem(k));
-  labels.push(k.replace("ATV_",""));
-  revArr.push((d.revenue?.tour||0)+(d.revenue?.rent||0)+(d.revenue?.other||0));
- });
- if(yearChartObj)yearChartObj.destroy();
- yearChartObj=new Chart(document.getElementById("yearChart"),{
-  type:'line',
-  data:{
-   labels,
-   datasets:[
-    {label:"รายได้รวม",data:revArr,borderColor:"#ef4b3f",tension:.4}
-   ]
-  }
- });
+})
+
 }
 
-dashMonth.value=new Date().toISOString().slice(0,7);
-renderDashboard();
-renderYearTrend();
+dashMonth.value=new Date().toISOString().slice(0,7)
 
-function showToast(msg){
- const t=document.getElementById("toast");
- t.innerText=msg;
- t.classList.add("show");
- setTimeout(()=>t.classList.remove("show"),2000);
-}
+renderDashboard()
 
-month.onchange=loadMonth;
-
-function loadMonth(){
- const key="ATV_"+month.value;
- const d=JSON.parse(localStorage.getItem(key)||"{}");
-
- maxCar.value=d.cars?.max||"";
- minCar.value=d.cars?.min||"";
- revTour.value=d.revenue?.tour||"";
- revRent.value=d.revenue?.rent||"";
- revOther.value=d.revenue?.other||"";
- walkin.value=d.customers?.walkin||"";
- home.value=d.customers?.home||"";
-
- expFuel.value=d.expenses?.fuel||"";
- expRepair.value=d.expenses?.repair||"";
- expSalary.value=d.expenses?.salary||"";
- expOther.value=d.expenses?.other||"";
-
-
- staffTable.innerHTML=`<tr><th>ชื่อ</th><th>ทำงาน</th><th>หยุด</th><th>เตือน</th></tr>`;
- (d.staff||[]).forEach(s=>{
-  staffTable.innerHTML+=`
-  <tr>
-   <td><input value="${s.name}"></td>
-   <td><input type="number" value="${s.work}"></td>
-   <td><input type="number" value="${s.off}"></td>
-   <td><input type="number" value="${s.warn}"></td>
-  </tr>`;
- });
-}
-
-function deleteMonth(){
- if(!month.value)return;
- const key="ATV_"+month.value;
- if(confirm("ลบข้อมูลเดือนนี้?")){
-  localStorage.removeItem(key);
-  showToast("ลบข้อมูลแล้ว");
-  renderDashboard();
-  renderYearTrend();
- }
-}
-
-
-function clearForm(){
- maxCar.value="";
- maxDay.value="";
- minCar.value="";
- minDay.value="";
- revTour.value="";
- revRent.value="";
- revOther.value="";
- walkin.value="";
- home.value="";
-
- expFuel.value="";
- expRepair.value="";
- expSalary.value="";
- expOther.value="";
-
- staffTable.innerHTML=`<tr><th>ชื่อ</th><th>ทำงาน</th><th>หยุด</th><th>เตือน</th></tr>`;
-}
-
-
-document.querySelectorAll("button").forEach(btn=>{
- btn.addEventListener("click",e=>{
-  const r=document.createElement("span");
-  r.className="ripple";
-
-  const rect=btn.getBoundingClientRect();
-  r.style.left=e.clientX-rect.left+"px";
-  r.style.top=e.clientY-rect.top+"px";
-
-  btn.appendChild(r);
-  setTimeout(()=>r.remove(),600);
- });
-});
-
-
-function showLoader(){
- loader.classList.add("show");
- setTimeout(()=>loader.classList.remove("show"),600);
-}
-
-</script>
-
-<div class="toast" id="toast">บันทึกสำเร็จ ✓</div>
-
-<div class="loader" id="loader">
-  <div class="spinner"></div>
-</div>
-
-
-<script>
-if ("serviceWorker" in navigator) {
-  navigator.serviceWorker.register("sw.js");
-}
-</script>
-
-
-<script>
-function countUp(el,value){
- let start=0;
- const dur=600;
- const step=value/(dur/16);
-
- const i=setInterval(()=>{
-  start+=step;
-  if(start>=value){
-   start=value;
-   clearInterval(i);
-  }
-  el.innerText=Math.floor(start).toLocaleString();
- },16);
-}
 </script>
 
 </body>
 </html>
+```
