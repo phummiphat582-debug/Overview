@@ -4,7 +4,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>ATV Executive Dashboard</title>
+<title>แดชบอร์ดธุรกิจ ATV</title>
 
 <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 
@@ -24,9 +24,8 @@
 
 body{
 margin:0;
-font-family:Tahoma,Arial;
+font-family:tahoma;
 background:var(--bg);
-color:var(--text);
 }
 
 .app{
@@ -49,13 +48,11 @@ border:none;
 border-radius:12px;
 background:#f3f4f6;
 cursor:pointer;
-text-align:left;
 }
 
 .menu-btn.active{
 background:var(--primary);
-color:white;
-font-weight:bold;
+color:#fff;
 }
 
 .main{
@@ -63,34 +60,29 @@ padding:28px;
 }
 
 .card{
-background:var(--card);
-border-radius:var(--radius);
-padding:28px;
+background:#fff;
+border-radius:18px;
+padding:26px;
 margin-bottom:24px;
 box-shadow:var(--shadow);
-}
-
-.card canvas{
-margin-top:20px;
 }
 
 .kpi-row{
 display:grid;
 grid-template-columns:repeat(auto-fit,minmax(220px,1fr));
-gap:22px;
-margin-bottom:30px;
+gap:20px;
 }
 
 .kpi{
 padding:18px;
-border-radius:14px;
 background:#f9fafb;
+border-radius:14px;
 border-left:6px solid transparent;
 }
 
-.kpi.good{border-color:var(--green)}
-.kpi.warn{border-color:var(--yellow)}
-.kpi.danger{border-color:var(--red)}
+.kpi.good{border-color:#16a34a}
+.kpi.warn{border-color:#f59e0b}
+.kpi.danger{border-color:#dc2626}
 
 .value{
 font-size:22px;
@@ -126,14 +118,14 @@ cursor:pointer;
 
 <div class="sidebar">
 
-<h3>ATV Dashboard</h3>
+<h3>แดชบอร์ด ATV</h3>
 
 <button class="menu-btn active" onclick="showPage('dashboard',this)">
-ภาพรวม
+ภาพรวมธุรกิจ
 </button>
 
 <button class="menu-btn" onclick="showPage('detail',this)">
-บันทึกข้อมูล
+บันทึก / แก้ไขข้อมูล
 </button>
 
 </div>
@@ -143,23 +135,25 @@ cursor:pointer;
 <section id="dashboard">
 
 <div class="card">
-<h2>ภาพรวมกิจการ ATV</h2>
+<h2>ภาพรวมธุรกิจ ATV</h2>
 </div>
 
 <div class="card">
+
 <label>เลือกเดือน</label>
 <input type="month" id="dashMonth" onchange="renderDashboard()">
+
 </div>
 
 <div class="kpi-row">
 
 <div class="kpi">
-<div>รถพร้อมมากสุด</div>
+<div>รถพร้อมบริการมากสุด</div>
 <div class="value" id="maxTxt">-</div>
 </div>
 
 <div class="kpi">
-<div>รถพร้อมน้อยสุด</div>
+<div>รถพร้อมบริการน้อยสุด</div>
 <div class="value" id="minTxt">-</div>
 </div>
 
@@ -199,7 +193,7 @@ cursor:pointer;
 
 <h3>สรุปรายได้ / รายจ่าย / กำไร</h3>
 
-<canvas id="mainChart" height="120"></canvas>
+<canvas id="mainChart"></canvas>
 
 </div>
 
@@ -208,8 +202,10 @@ cursor:pointer;
 <section id="detail" style="display:none">
 
 <div class="card">
+
 <label>เลือกเดือน</label>
-<input type="month" id="month">
+<input type="month" id="month" onchange="loadMonth()">
+
 </div>
 
 <div class="card">
@@ -228,13 +224,13 @@ cursor:pointer;
 
 <h3>รายได้</h3>
 
-<label>Tour</label>
+<label>ทัวร์</label>
 <input id="revTour">
 
-<label>Rent</label>
+<label>เช่า</label>
 <input id="revRent">
 
-<label>Other</label>
+<label>อื่นๆ</label>
 <input id="revOther">
 
 </div>
@@ -243,16 +239,16 @@ cursor:pointer;
 
 <h3>รายจ่าย</h3>
 
-<label>Fuel</label>
+<label>ค่าน้ำมัน</label>
 <input id="expFuel">
 
-<label>Repair</label>
+<label>ค่าซ่อม</label>
 <input id="expRepair">
 
-<label>Salary</label>
+<label>เงินเดือน</label>
 <input id="expSalary">
 
-<label>Other</label>
+<label>อื่นๆ</label>
 <input id="expOther">
 
 </div>
@@ -267,7 +263,7 @@ cursor:pointer;
 <label>Villa</label>
 <input id="villa">
 
-<label>Partner / Agent</label>
+<label>Agent / Partner</label>
 <input id="agent">
 
 </div>
@@ -298,8 +294,6 @@ document.getElementById(id).style.display="block"
 document.querySelectorAll(".menu-btn").forEach(b=>b.classList.remove("active"))
 
 btn.classList.add("active")
-
-if(id==="dashboard") renderDashboard()
 
 }
 
@@ -340,7 +334,29 @@ agent:+agent.value||0
 
 localStorage.setItem("ATV_"+month.value,JSON.stringify(data))
 
-alert("บันทึกสำเร็จ")
+alert("บันทึกข้อมูลเรียบร้อย")
+
+}
+
+function loadMonth(){
+
+const d=JSON.parse(localStorage.getItem("ATV_"+month.value) || "{}")
+
+maxCar.value=d.cars?.max||""
+minCar.value=d.cars?.min||""
+
+revTour.value=d.revenue?.tour||""
+revRent.value=d.revenue?.rent||""
+revOther.value=d.revenue?.other||""
+
+expFuel.value=d.expenses?.fuel||""
+expRepair.value=d.expenses?.repair||""
+expSalary.value=d.expenses?.salary||""
+expOther.value=d.expenses?.other||""
+
+walkin.value=d.customers?.walkin||""
+villa.value=d.customers?.villa||""
+agent.value=d.customers?.agent||""
 
 }
 
@@ -350,13 +366,6 @@ const m=dashMonth.value
 if(!m)return
 
 const d=JSON.parse(localStorage.getItem("ATV_"+m) || "{}")
-
-const prevDate=new Date(m+"-01")
-prevDate.setMonth(prevDate.getMonth()-1)
-
-const prevKey="ATV_"+prevDate.toISOString().slice(0,7)
-
-const p=JSON.parse(localStorage.getItem(prevKey) || "{}")
 
 const tour=d.revenue?.tour||0
 const rent=d.revenue?.rent||0
@@ -371,39 +380,12 @@ const revenue=tour+rent+other
 const expense=fuel+repair+salary+expOther
 const profit=revenue-expense
 
-const prevRevenue=
-(p.revenue?.tour||0)+
-(p.revenue?.rent||0)+
-(p.revenue?.other||0)
-
-const prevExpense=
-(p.expenses?.fuel||0)+
-(p.expenses?.repair||0)+
-(p.expenses?.salary||0)+
-(p.expenses?.other||0)
-
-const prevProfit=prevRevenue-prevExpense
-
-maxTxt.innerText=(d.cars?.max||0)+" คัน"
-minTxt.innerText=(d.cars?.min||0)+" คัน"
-
 revTxt.innerText=revenue.toLocaleString()+" บาท"
 expTxt.innerText=expense.toLocaleString()+" บาท"
 profitTxt.innerText=profit.toLocaleString()+" บาท"
 
-let revDiff="-"
-let profitDiff="-"
-
-if(prevRevenue){
-revDiff=((revenue-prevRevenue)/prevRevenue*100).toFixed(1)+"%"
-}
-
-if(prevProfit){
-profitDiff=((profit-prevProfit)/prevProfit*100).toFixed(1)+"%"
-}
-
-revDiffTxt.innerText=revDiff
-profitDiffTxt.innerText=profitDiff
+maxTxt.innerText=(d.cars?.max||0)+" คัน"
+minTxt.innerText=(d.cars?.min||0)+" คัน"
 
 custTxt.innerText=
 (d.customers?.walkin||0)+" / "+
@@ -417,7 +399,7 @@ chart=new Chart(document.getElementById("mainChart"),{
 type:"bar",
 
 data:{
-labels:["Revenue","Expense","Profit"],
+labels:["รายได้","รายจ่าย","กำไร"],
 datasets:[{
 data:[revenue,expense,profit],
 backgroundColor:["#16a34a","#ef4444","#6366f1"]
