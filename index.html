@@ -4,7 +4,6 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-
 <title>แดชบอร์ดธุรกิจ ATV</title>
 
 <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
@@ -12,20 +11,10 @@
 
 <style>
 
-:root{
---primary:#ef4b3f;
---green:#16a34a;
---yellow:#f59e0b;
---red:#dc2626;
---bg:#f4f6f8;
---card:#ffffff;
---shadow:0 10px 30px rgba(0,0,0,.08);
-}
-
 body{
 margin:0;
 font-family:tahoma;
-background:var(--bg);
+background:#f4f6f8;
 }
 
 .app{
@@ -35,9 +24,9 @@ min-height:100vh;
 }
 
 .sidebar{
-background:white;
+background:#fff;
 padding:20px;
-box-shadow:var(--shadow);
+box-shadow:0 10px 30px rgba(0,0,0,.08);
 }
 
 .menu-btn{
@@ -64,26 +53,20 @@ background:white;
 border-radius:16px;
 padding:26px;
 margin-bottom:26px;
-box-shadow:var(--shadow);
+box-shadow:0 10px 30px rgba(0,0,0,.08);
 }
 
 .kpi-row{
 display:grid;
 grid-template-columns:repeat(auto-fit,minmax(200px,1fr));
 gap:20px;
-margin-bottom:30px;
 }
 
 .kpi{
 background:#f9fafb;
 border-radius:12px;
 padding:18px;
-border-left:6px solid transparent;
 }
-
-.kpi.good{border-color:#16a34a}
-.kpi.warn{border-color:#f59e0b}
-.kpi.danger{border-color:#dc2626}
 
 .value{
 font-size:24px;
@@ -322,16 +305,21 @@ setTimeout(()=>t.classList.remove("show"),2000)
 }
 
 function showPage(id,btn){
+
 document.querySelectorAll("section").forEach(s=>s.style.display="none")
 document.getElementById(id).style.display="block"
+
 document.querySelectorAll(".menu-btn").forEach(b=>b.classList.remove("active"))
 btn.classList.add("active")
+
 if(id==="dashboard") renderDashboard()
+
 }
 
 function saveMonth(){
 
-if(!month.value){
+const m=document.getElementById("month").value
+if(!m){
 alert("กรุณาเลือกเดือน")
 return
 }
@@ -339,36 +327,36 @@ return
 const data={
 
 cars:{
-max:Number(maxCar.value)||0,
-maxDay:Number(maxDay.value)||0,
-min:Number(minCar.value)||0,
-minDay:Number(minDay.value)||0
+max:parseInt(document.getElementById("maxCar").value)||0,
+maxDay:parseInt(document.getElementById("maxDay").value)||0,
+min:parseInt(document.getElementById("minCar").value)||0,
+minDay:parseInt(document.getElementById("minDay").value)||0
 },
 
 revenue:{
-tour:Number(revTour.value)||0,
-rent:Number(revRent.value)||0,
-other:Number(revOther.value)||0
+tour:parseInt(revTour.value)||0,
+rent:parseInt(revRent.value)||0,
+other:parseInt(revOther.value)||0
 },
 
 expenses:{
-fuel:Number(expFuel.value)||0,
-repair:Number(expRepair.value)||0,
-salary:Number(expSalary.value)||0,
-other:Number(expOther.value)||0
+fuel:parseInt(expFuel.value)||0,
+repair:parseInt(expRepair.value)||0,
+salary:parseInt(expSalary.value)||0,
+other:parseInt(expOther.value)||0
 },
 
 customers:{
-walkin:Number(walkin.value)||0,
-villa:Number(villa.value)||0,
-agent:Number(agent.value)||0
+walkin:parseInt(walkin.value)||0,
+villa:parseInt(villa.value)||0,
+agent:parseInt(agent.value)||0
 }
 
 }
 
-localStorage.setItem("ATV_"+month.value,JSON.stringify(data))
+localStorage.setItem("ATV_"+m,JSON.stringify(data))
 
-showToast("บันทึกข้อมูลเรียบร้อย ✓")
+showToast("บันทึกข้อมูลเรียบร้อย")
 
 renderDashboard()
 
@@ -406,22 +394,11 @@ if(!m)return
 
 const d=JSON.parse(localStorage.getItem("ATV_"+m)||"{}")
 
-const prevDate=new Date(m+"-01")
-prevDate.setMonth(prevDate.getMonth()-1)
-
-const prevKey="ATV_"+prevDate.toISOString().slice(0,7)
-
-const p=JSON.parse(localStorage.getItem(prevKey)||"{}")
-
 const revenue=(d.revenue?.tour||0)+(d.revenue?.rent||0)+(d.revenue?.other||0)
 
 const expense=(d.expenses?.fuel||0)+(d.expenses?.repair||0)+(d.expenses?.salary||0)+(d.expenses?.other||0)
 
 const profit=revenue-expense
-
-const prevRevenue=(p.revenue?.tour||0)+(p.revenue?.rent||0)+(p.revenue?.other||0)
-
-const prevProfit=prevRevenue-((p.expenses?.fuel||0)+(p.expenses?.repair||0)+(p.expenses?.salary||0)+(p.expenses?.other||0))
 
 maxTxt.innerText=(d.cars?.max||0)+" คัน ("+(d.cars?.maxDay||0)+" วัน)"
 minTxt.innerText=(d.cars?.min||0)+" คัน ("+(d.cars?.minDay||0)+" วัน)"
@@ -432,27 +409,20 @@ profitTxt.innerText=profit.toLocaleString()+" บาท"
 
 custTxt.innerText=(d.customers?.walkin||0)+" / "+(d.customers?.villa||0)+" / "+(d.customers?.agent||0)
 
-let revDiff="-"
-let profitDiff="-"
-
-if(prevRevenue>0) revDiff=((revenue-prevRevenue)/prevRevenue*100).toFixed(1)+"%"
-if(prevProfit!=0) profitDiff=((profit-prevProfit)/prevProfit*100).toFixed(1)+"%"
-
-revDiffTxt.innerText=revDiff
-profitDiffTxt.innerText=profitDiff
-
 if(chart) chart.destroy()
 
 chart=new Chart(document.getElementById("mainChart"),{
+
 type:"bar",
+
 data:{
 labels:["รายได้","รายจ่าย","กำไร"],
 datasets:[{
 data:[revenue,expense,profit],
 backgroundColor:["#16a34a","#ef4444","#6366f1"]
 }]
-},
-options:{plugins:{legend:{display:false}}}
+}
+
 })
 
 }
