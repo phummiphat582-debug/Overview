@@ -5,79 +5,80 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>ATV Executive Dashboard</title>
-
 <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 
 <style>
 :root{
---primary:#ef4b3f;
---green:#16a34a;
---yellow:#f59e0b;
---red:#dc2626;
---bg:#f4f6f8;
---card:#ffffff;
---text:#1f2937;
---shadow:0 12px 30px rgba(0,0,0,.08);
---radius:18px;
+ --primary:#ef4b3f;
+ --green:#16a34a;
+ --yellow:#f59e0b;
+ --red:#dc2626;
+ --bg:#f4f6f8;
+ --card:#ffffff;
+ --text:#1f2937;
+ --shadow:0 10px 25px rgba(0,0,0,.08);
+ --radius:18px;
 }
 
 body{
-margin:0;
-font-family:Tahoma;
-background:var(--bg);
-color:var(--text);
+ margin:0;
+ font-family:Tahoma,Arial;
+ background:var(--bg);
+ color:var(--text);
 }
 
 .app{
-display:grid;
-grid-template-columns:260px 1fr;
-min-height:100vh;
+ display:grid;
+ grid-template-columns:260px 1fr;
+ min-height:100vh;
 }
 
-.left{
-background:#fff;
-padding:20px;
-box-shadow:var(--shadow);
+.sidebar{
+ background:#fff;
+ padding:20px;
+ box-shadow:var(--shadow);
 }
 
 .menu-btn{
-width:100%;
-padding:12px;
-margin-bottom:10px;
-border:none;
-border-radius:12px;
-cursor:pointer;
-background:#f3f4f6;
+ width:100%;
+ padding:12px;
+ margin-bottom:10px;
+ border:none;
+ border-radius:12px;
+ background:#f3f4f6;
+ cursor:pointer;
+ text-align:left;
 }
 
 .menu-btn.active{
-background:var(--primary);
-color:#fff;
+ background:var(--primary);
+ color:white;
+ font-weight:bold;
 }
 
 .main{
-padding:25px;
+ padding:28px;
 }
 
 .card{
-background:var(--card);
-border-radius:var(--radius);
-padding:20px;
-box-shadow:var(--shadow);
-margin-bottom:20px;
+ background:var(--card);
+ border-radius:var(--radius);
+ padding:20px;
+ margin-bottom:20px;
+ box-shadow:var(--shadow);
 }
 
 .kpi-row{
-display:grid;
-grid-template-columns:repeat(auto-fit,minmax(220px,1fr));
-gap:20px;
+ display:grid;
+ grid-template-columns:repeat(auto-fit,minmax(220px,1fr));
+ gap:20px;
 }
 
 .kpi{
-padding:20px;
-border-radius:15px;
-background:#f9fafb;
-border-left:8px solid transparent;
+ padding:18px;
+ background:#f9fafb;
+ border-radius:14px;
+ border-left:6px solid transparent;
 }
 
 .kpi.good{border-color:var(--green);}
@@ -85,39 +86,38 @@ border-left:8px solid transparent;
 .kpi.danger{border-color:var(--red);}
 
 .value{
-font-size:22px;
-font-weight:bold;
+ font-size:22px;
+ font-weight:bold;
 }
 
 input{
-width:100%;
-padding:10px;
-border-radius:10px;
-border:1px solid #ddd;
-margin-top:5px;
+ width:100%;
+ padding:10px;
+ margin-top:5px;
+ border-radius:10px;
+ border:1px solid #ddd;
 }
 
 button.primary{
-width:100%;
-padding:14px;
-border:none;
-border-radius:12px;
-background:var(--primary);
-color:white;
-font-weight:bold;
-cursor:pointer;
-margin-top:10px;
+ width:100%;
+ padding:14px;
+ margin-top:10px;
+ border:none;
+ border-radius:12px;
+ background:var(--primary);
+ color:white;
+ font-weight:bold;
+ cursor:pointer;
 }
 
 table{
-width:100%;
-border-collapse:collapse;
+ width:100%;
+ border-collapse:collapse;
 }
 
 td,th{
-padding:8px;
+ padding:8px;
 }
-
 </style>
 </head>
 
@@ -125,13 +125,10 @@ padding:8px;
 
 <div class="app">
 
-<div class="left">
-
+<div class="sidebar">
 <h3>ATV Dashboard</h3>
-
 <button class="menu-btn active" onclick="showPage('dashboard',this)">ภาพรวม</button>
 <button class="menu-btn" onclick="showPage('detail',this)">บันทึกข้อมูล</button>
-
 </div>
 
 <div class="main">
@@ -139,7 +136,7 @@ padding:8px;
 <section id="dashboard">
 
 <div class="card">
-<h2>ภาพรวมกิจการ</h2>
+<h2>ภาพรวมกิจการ ATV</h2>
 </div>
 
 <div class="card">
@@ -149,7 +146,17 @@ padding:8px;
 
 <div class="kpi-row">
 
-<div class="kpi" id="kpiRev">
+<div class="kpi">
+<div>รถพร้อมมากสุด</div>
+<div class="value" id="maxTxt">-</div>
+</div>
+
+<div class="kpi">
+<div>รถพร้อมน้อยสุด</div>
+<div class="value" id="minTxt">-</div>
+</div>
+
+<div class="kpi">
 <div>รายได้รวม</div>
 <div class="value" id="revTxt">-</div>
 </div>
@@ -160,7 +167,7 @@ padding:8px;
 </div>
 
 <div class="kpi">
-<div>ลูกค้า Walkin / บ้าน</div>
+<div>ลูกค้า (Walk-in / Villa / Agent)</div>
 <div class="value" id="custTxt">-</div>
 </div>
 
@@ -182,6 +189,17 @@ padding:8px;
 <div class="card">
 <label>เลือกเดือน</label>
 <input type="month" id="month">
+</div>
+
+<div class="card">
+<h3>รถพร้อมบริการ</h3>
+
+<label>มากสุด</label>
+<input id="maxCar">
+
+<label>น้อยสุด</label>
+<input id="minCar">
+
 </div>
 
 <div class="card">
@@ -218,16 +236,20 @@ padding:8px;
 <div class="card">
 <h3>ลูกค้า</h3>
 
-<label>Walkin</label>
+<label>Walk-in</label>
 <input id="walkin">
 
-<label>Home</label>
-<input id="home">
+<label>Villa</label>
+<input id="villa">
+
+<label>Partner / Agent</label>
+<input id="agent">
 
 </div>
 
 <div class="card">
-<h3>Staff</h3>
+
+<h3>พนักงาน</h3>
 
 <table id="staffTable">
 <tr>
@@ -243,177 +265,163 @@ padding:8px;
 </div>
 
 <div class="card">
-
 <button class="primary" onclick="saveMonth()">บันทึกข้อมูล</button>
-
 </div>
 
 </section>
 
 </div>
-
 </div>
 
 <script>
 
-let chart
+let chart;
 
 function showPage(id,btn){
+ document.querySelectorAll("section").forEach(s=>s.style.display="none");
+ document.getElementById(id).style.display="block";
 
-document.querySelectorAll("section").forEach(s=>s.style.display="none")
-document.getElementById(id).style.display="block"
+ document.querySelectorAll(".menu-btn").forEach(b=>b.classList.remove("active"));
+ btn.classList.add("active");
 
-document.querySelectorAll(".menu-btn").forEach(b=>b.classList.remove("active"))
-btn.classList.add("active")
-
+ if(id==="dashboard") renderDashboard();
 }
 
 function addStaff(){
-
-const row=document.createElement("tr")
-
-row.innerHTML=`
-<td><input></td>
-<td><input type="number"></td>
-<td><input type="number"></td>
-<td><input type="number"></td>
-`
-
-staffTable.appendChild(row)
-
+ const row=document.createElement("tr");
+ row.innerHTML=`
+ <td><input></td>
+ <td><input type="number"></td>
+ <td><input type="number"></td>
+ <td><input type="number"></td>`;
+ staffTable.appendChild(row);
 }
 
 function saveMonth(){
 
-if(!month.value){
-alert("เลือกเดือนก่อน")
-return
-}
+ if(!month.value){
+  alert("กรุณาเลือกเดือน");
+  return;
+ }
 
-const staff=[...staffTable.querySelectorAll("tr")]
-.slice(1)
-.map(r=>{
-const i=r.querySelectorAll("input")
-return{
-name:i[0].value,
-work:+i[1].value,
-off:+i[2].value,
-warn:+i[3].value
-}
-})
+ const staff=[...staffTable.querySelectorAll("tr")]
+ .slice(1)
+ .map(r=>{
+  const i=r.querySelectorAll("input");
+  return{
+   name:i[0].value,
+   work:+i[1].value||0,
+   off:+i[2].value||0,
+   warn:+i[3].value||0
+  };
+ });
 
-const data={
+ const data={
+  cars:{
+   max:+maxCar.value||0,
+   min:+minCar.value||0
+  },
 
-revenue:{
-tour:+revTour.value||0,
-rent:+revRent.value||0,
-other:+revOther.value||0
-},
+  revenue:{
+   tour:+revTour.value||0,
+   rent:+revRent.value||0,
+   other:+revOther.value||0
+  },
 
-expenses:{
-fuel:+expFuel.value||0,
-repair:+expRepair.value||0,
-salary:+expSalary.value||0,
-other:+expOther.value||0
-},
+  expenses:{
+   fuel:+expFuel.value||0,
+   repair:+expRepair.value||0,
+   salary:+expSalary.value||0,
+   other:+expOther.value||0
+  },
 
-customers:{
-walkin:+walkin.value||0,
-home:+home.value||0
-},
+  customers:{
+   walkin:+walkin.value||0,
+   villa:+villa.value||0,
+   agent:+agent.value||0
+  },
 
-staff
+  staff
+ };
 
-}
+ localStorage.setItem("ATV_"+month.value,JSON.stringify(data));
 
-localStorage.setItem("ATV_"+month.value,JSON.stringify(data))
-
-alert("บันทึกสำเร็จ")
-
+ alert("บันทึกสำเร็จ");
 }
 
 function renderDashboard(){
 
-const m=dashMonth.value
-if(!m)return
+ const m=dashMonth.value;
+ if(!m)return;
 
-const d=JSON.parse(localStorage.getItem("ATV_"+m)||"{}")
+ const d=JSON.parse(localStorage.getItem("ATV_"+m)||"{}");
 
-const tour=d.revenue?.tour||0
-const rent=d.revenue?.rent||0
-const other=d.revenue?.other||0
+ const tour=d.revenue?.tour||0;
+ const rent=d.revenue?.rent||0;
+ const other=d.revenue?.other||0;
 
-const fuel=d.expenses?.fuel||0
-const repair=d.expenses?.repair||0
-const salary=d.expenses?.salary||0
-const expOther=d.expenses?.other||0
+ const fuel=d.expenses?.fuel||0;
+ const repair=d.expenses?.repair||0;
+ const salary=d.expenses?.salary||0;
+ const expOther=d.expenses?.other||0;
 
-const revenue=tour+rent+other
-const expense=fuel+repair+salary+expOther
-const profit=revenue-expense
+ const revenue=tour+rent+other;
+ const expense=fuel+repair+salary+expOther;
+ const profit=revenue-expense;
 
-revTxt.innerText=revenue.toLocaleString()+" บาท"
-profitTxt.innerText=profit.toLocaleString()+" บาท"
+ maxTxt.innerText=(d.cars?.max||0)+" คัน";
+ minTxt.innerText=(d.cars?.min||0)+" คัน";
 
-custTxt.innerText=
-(d.customers?.walkin||0)+" / "+
-(d.customers?.home||0)
+ revTxt.innerText=revenue.toLocaleString()+" บาท";
+ profitTxt.innerText=profit.toLocaleString()+" บาท";
 
-const st=d.staff||[]
+ custTxt.innerText=
+ (d.customers?.walkin||0)+" / "+
+ (d.customers?.villa||0)+" / "+
+ (d.customers?.agent||0);
 
-staffTxt.innerText=
-st.reduce((a,b)=>a+b.work,0)+" / "+
-st.reduce((a,b)=>a+b.off,0)+" / "+
-st.reduce((a,b)=>a+b.warn,0)
+ const st=d.staff||[];
 
-if(chart)chart.destroy()
+ staffTxt.innerText=
+ st.reduce((a,b)=>a+b.work,0)+" / "+
+ st.reduce((a,b)=>a+b.off,0)+" / "+
+ st.reduce((a,b)=>a+b.warn,0);
 
-chart=new Chart(document.getElementById("mainChart"),{
+ const profitKPI=document.getElementById("kpiProfit");
 
-type:"bar",
+ profitKPI.classList.remove("good","warn","danger");
 
-data:{
-labels:[
-"Tour",
-"Rent",
-"Other",
-"Fuel",
-"Repair",
-"Salary",
-"Expense Other"
-],
+ if(profit<0) profitKPI.classList.add("danger");
+ else if(profit<5000) profitKPI.classList.add("warn");
+ else profitKPI.classList.add("good");
 
-datasets:[{
-label:"รายได้ / รายจ่าย",
-data:[
-tour,
-rent,
-other,
-fuel,
-repair,
-salary,
-expOther
-],
-backgroundColor:[
-"#16a34a",
-"#22c55e",
-"#4ade80",
-"#ef4444",
-"#dc2626",
-"#b91c1c",
-"#991b1b"
-]
-}]
+ if(chart) chart.destroy();
+
+ chart=new Chart(document.getElementById("mainChart"),{
+  type:"bar",
+  data:{
+   labels:[
+    "Tour","Rent","Other",
+    "Fuel","Repair","Salary","Expense Other"
+   ],
+   datasets:[{
+    label:"รายได้ / รายจ่าย",
+    data:[
+     tour,rent,other,
+     fuel,repair,salary,expOther
+    ],
+    backgroundColor:[
+     "#16a34a","#22c55e","#4ade80",
+     "#ef4444","#dc2626","#b91c1c","#991b1b"
+    ]
+   }]
+  }
+ });
 
 }
 
-})
-
-}
-
-dashMonth.value=new Date().toISOString().slice(0,7)
-
-renderDashboard()
+dashMonth.value=new Date().toISOString().slice(0,7);
+renderDashboard();
 
 </script>
 
