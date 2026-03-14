@@ -4,9 +4,11 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
 <title>แดชบอร์ดธุรกิจ ATV</title>
 
 <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/html2canvas@1.4.1/dist/html2canvas.min.js"></script>
 
 <style>
 
@@ -33,7 +35,7 @@ min-height:100vh;
 }
 
 .sidebar{
-background:#fff;
+background:white;
 padding:20px;
 box-shadow:var(--shadow);
 }
@@ -49,32 +51,33 @@ cursor:pointer;
 }
 
 .menu-btn.active{
-background:var(--primary);
+background:#ef4b3f;
 color:white;
 }
 
 .main{
-padding:28px;
+padding:30px;
 }
 
 .card{
-background:#fff;
+background:white;
 border-radius:16px;
-padding:24px;
-margin-bottom:22px;
+padding:26px;
+margin-bottom:28px;
 box-shadow:var(--shadow);
 }
 
 .kpi-row{
 display:grid;
 grid-template-columns:repeat(auto-fit,minmax(200px,1fr));
-gap:20px;
+gap:22px;
+margin-bottom:30px;
 }
 
 .kpi{
-padding:18px;
 background:#f9fafb;
 border-radius:12px;
+padding:18px;
 border-left:6px solid transparent;
 }
 
@@ -83,8 +86,9 @@ border-left:6px solid transparent;
 .kpi.danger{border-color:#dc2626}
 
 .value{
-font-size:22px;
+font-size:24px;
 font-weight:bold;
+margin-top:6px;
 }
 
 input{
@@ -103,8 +107,12 @@ border-radius:10px;
 background:#ef4b3f;
 color:white;
 font-weight:bold;
-margin-top:10px;
+margin-top:12px;
 cursor:pointer;
+}
+
+canvas{
+margin-top:20px;
 }
 
 </style>
@@ -137,21 +145,19 @@ cursor:pointer;
 </div>
 
 <div class="card">
-
 <label>เลือกเดือน</label>
 <input type="month" id="dashMonth" onchange="renderDashboard()">
-
 </div>
 
 <div class="kpi-row">
 
 <div class="kpi">
-<div>รถพร้อมบริการมากสุด</div>
+<div>รถพร้อมมากสุด</div>
 <div class="value" id="maxTxt">-</div>
 </div>
 
 <div class="kpi">
-<div>รถพร้อมบริการน้อยสุด</div>
+<div>รถพร้อมน้อยสุด</div>
 <div class="value" id="minTxt">-</div>
 </div>
 
@@ -188,8 +194,15 @@ cursor:pointer;
 </div>
 
 <div class="card">
+
 <h3>สรุปรายได้ / รายจ่าย / กำไร</h3>
-<canvas id="mainChart"></canvas>
+
+<canvas id="mainChart" height="120"></canvas>
+
+<button class="primary" onclick="captureDashboard()">
+📸 บันทึกภาพรายงาน
+</button>
+
 </div>
 
 </section>
@@ -371,29 +384,15 @@ const prevKey="ATV_"+prevDate.toISOString().slice(0,7)
 
 const p=JSON.parse(localStorage.getItem(prevKey) || "{}")
 
-const tour=d.revenue?.tour||0
-const rent=d.revenue?.rent||0
-const other=d.revenue?.other||0
+const revenue=(d.revenue?.tour||0)+(d.revenue?.rent||0)+(d.revenue?.other||0)
 
-const fuel=d.expenses?.fuel||0
-const repair=d.expenses?.repair||0
-const salary=d.expenses?.salary||0
-const expOther=d.expenses?.other||0
+const expense=(d.expenses?.fuel||0)+(d.expenses?.repair||0)+(d.expenses?.salary||0)+(d.expenses?.other||0)
 
-const revenue=tour+rent+other
-const expense=fuel+repair+salary+expOther
 const profit=revenue-expense
 
-const prevRevenue=
-(p.revenue?.tour||0)+
-(p.revenue?.rent||0)+
-(p.revenue?.other||0)
+const prevRevenue=(p.revenue?.tour||0)+(p.revenue?.rent||0)+(p.revenue?.other||0)
 
-const prevExpense=
-(p.expenses?.fuel||0)+
-(p.expenses?.repair||0)+
-(p.expenses?.salary||0)+
-(p.expenses?.other||0)
+const prevExpense=(p.expenses?.fuel||0)+(p.expenses?.repair||0)+(p.expenses?.salary||0)+(p.expenses?.other||0)
 
 const prevProfit=prevRevenue-prevExpense
 
@@ -404,21 +403,13 @@ profitTxt.innerText=profit.toLocaleString()+" บาท"
 maxTxt.innerText=(d.cars?.max||0)+" คัน"
 minTxt.innerText=(d.cars?.min||0)+" คัน"
 
-custTxt.innerText=
-(d.customers?.walkin||0)+" / "+
-(d.customers?.villa||0)+" / "+
-(d.customers?.agent||0)
+custTxt.innerText=(d.customers?.walkin||0)+" / "+(d.customers?.villa||0)+" / "+(d.customers?.agent||0)
 
 let revDiff="-"
 let profitDiff="-"
 
-if(prevRevenue>0){
-revDiff=((revenue-prevRevenue)/prevRevenue*100).toFixed(1)+"%"
-}
-
-if(prevProfit!=0){
-profitDiff=((profit-prevProfit)/prevProfit*100).toFixed(1)+"%"
-}
+if(prevRevenue>0) revDiff=((revenue-prevRevenue)/prevRevenue*100).toFixed(1)+"%"
+if(prevProfit!=0) profitDiff=((profit-prevProfit)/prevProfit*100).toFixed(1)+"%"
 
 revDiffTxt.innerText=revDiff
 profitDiffTxt.innerText=profitDiff
@@ -426,9 +417,7 @@ profitDiffTxt.innerText=profitDiff
 if(chart) chart.destroy()
 
 chart=new Chart(document.getElementById("mainChart"),{
-
 type:"bar",
-
 data:{
 labels:["รายได้","รายจ่าย","กำไร"],
 datasets:[{
@@ -436,13 +425,18 @@ data:[revenue,expense,profit],
 backgroundColor:["#16a34a","#ef4444","#6366f1"]
 }]
 },
+options:{plugins:{legend:{display:false}}}
+})
 
-options:{
-plugins:{
-legend:{display:false}
-}
 }
 
+function captureDashboard(){
+
+html2canvas(document.getElementById("dashboard")).then(canvas=>{
+const link=document.createElement("a")
+link.download="รายงาน-ATV-"+dashMonth.value+".png"
+link.href=canvas.toDataURL()
+link.click()
 })
 
 }
