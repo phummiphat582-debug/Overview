@@ -17,9 +17,7 @@
 --red:#dc2626;
 --bg:#f4f6f8;
 --card:#ffffff;
---text:#1f2937;
 --shadow:0 10px 30px rgba(0,0,0,.08);
---radius:18px;
 }
 
 body{
@@ -45,14 +43,14 @@ width:100%;
 padding:12px;
 margin-bottom:10px;
 border:none;
-border-radius:12px;
+border-radius:10px;
 background:#f3f4f6;
 cursor:pointer;
 }
 
 .menu-btn.active{
 background:var(--primary);
-color:#fff;
+color:white;
 }
 
 .main{
@@ -61,22 +59,22 @@ padding:28px;
 
 .card{
 background:#fff;
-border-radius:18px;
-padding:26px;
-margin-bottom:24px;
+border-radius:16px;
+padding:24px;
+margin-bottom:22px;
 box-shadow:var(--shadow);
 }
 
 .kpi-row{
 display:grid;
-grid-template-columns:repeat(auto-fit,minmax(220px,1fr));
+grid-template-columns:repeat(auto-fit,minmax(200px,1fr));
 gap:20px;
 }
 
 .kpi{
 padding:18px;
 background:#f9fafb;
-border-radius:14px;
+border-radius:12px;
 border-left:6px solid transparent;
 }
 
@@ -92,17 +90,17 @@ font-weight:bold;
 input{
 width:100%;
 padding:10px;
-border-radius:10px;
+border-radius:8px;
 border:1px solid #ddd;
-margin-top:6px;
+margin-top:5px;
 }
 
 button.primary{
 width:100%;
 padding:14px;
 border:none;
-border-radius:12px;
-background:var(--primary);
+border-radius:10px;
+background:#ef4b3f;
 color:white;
 font-weight:bold;
 margin-top:10px;
@@ -190,11 +188,8 @@ cursor:pointer;
 </div>
 
 <div class="card">
-
 <h3>สรุปรายได้ / รายจ่าย / กำไร</h3>
-
 <canvas id="mainChart"></canvas>
-
 </div>
 
 </section>
@@ -263,7 +258,7 @@ cursor:pointer;
 <label>Villa</label>
 <input id="villa">
 
-<label>Agent / Partner</label>
+<label>Agent</label>
 <input id="agent">
 
 </div>
@@ -294,6 +289,8 @@ document.getElementById(id).style.display="block"
 document.querySelectorAll(".menu-btn").forEach(b=>b.classList.remove("active"))
 
 btn.classList.add("active")
+
+if(id==="dashboard") renderDashboard()
 
 }
 
@@ -367,6 +364,13 @@ if(!m)return
 
 const d=JSON.parse(localStorage.getItem("ATV_"+m) || "{}")
 
+const prevDate=new Date(m+"-01")
+prevDate.setMonth(prevDate.getMonth()-1)
+
+const prevKey="ATV_"+prevDate.toISOString().slice(0,7)
+
+const p=JSON.parse(localStorage.getItem(prevKey) || "{}")
+
 const tour=d.revenue?.tour||0
 const rent=d.revenue?.rent||0
 const other=d.revenue?.other||0
@@ -380,6 +384,19 @@ const revenue=tour+rent+other
 const expense=fuel+repair+salary+expOther
 const profit=revenue-expense
 
+const prevRevenue=
+(p.revenue?.tour||0)+
+(p.revenue?.rent||0)+
+(p.revenue?.other||0)
+
+const prevExpense=
+(p.expenses?.fuel||0)+
+(p.expenses?.repair||0)+
+(p.expenses?.salary||0)+
+(p.expenses?.other||0)
+
+const prevProfit=prevRevenue-prevExpense
+
 revTxt.innerText=revenue.toLocaleString()+" บาท"
 expTxt.innerText=expense.toLocaleString()+" บาท"
 profitTxt.innerText=profit.toLocaleString()+" บาท"
@@ -391,6 +408,20 @@ custTxt.innerText=
 (d.customers?.walkin||0)+" / "+
 (d.customers?.villa||0)+" / "+
 (d.customers?.agent||0)
+
+let revDiff="-"
+let profitDiff="-"
+
+if(prevRevenue>0){
+revDiff=((revenue-prevRevenue)/prevRevenue*100).toFixed(1)+"%"
+}
+
+if(prevProfit!=0){
+profitDiff=((profit-prevProfit)/prevProfit*100).toFixed(1)+"%"
+}
+
+revDiffTxt.innerText=revDiff
+profitDiffTxt.innerText=profitDiff
 
 if(chart) chart.destroy()
 
