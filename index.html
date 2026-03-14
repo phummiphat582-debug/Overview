@@ -5,6 +5,7 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>ATV Executive Dashboard</title>
+
 <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 
 <style>
@@ -171,6 +172,11 @@ padding:8px;
 <div class="value" id="revTxt">-</div>
 </div>
 
+<div class="kpi">
+<div>รายจ่ายรวม</div>
+<div class="value" id="expTxt">-</div>
+</div>
+
 <div class="kpi" id="kpiProfit">
 <div>กำไรสุทธิ</div>
 <div class="value" id="profitTxt">-</div>
@@ -199,18 +205,8 @@ padding:8px;
 </div>
 
 <div class="card">
-<h3>กราฟรายได้</h3>
-<canvas id="revChart"></canvas>
-</div>
-
-<div class="card">
-<h3>กราฟรายจ่าย</h3>
-<canvas id="expChart"></canvas>
-</div>
-
-<div class="card">
-<h3>กราฟกำไร</h3>
-<canvas id="profitChart"></canvas>
+<h3>สรุปรายได้ / รายจ่าย / กำไร</h3>
+<canvas id="mainChart"></canvas>
 </div>
 
 </section>
@@ -315,9 +311,7 @@ padding:8px;
 
 <script>
 
-let revChart
-let expChart
-let profitChart
+let chart
 
 function showPage(id,btn){
 
@@ -445,6 +439,7 @@ maxTxt.innerText=(d.cars?.max||0)+" คัน"
 minTxt.innerText=(d.cars?.min||0)+" คัน"
 
 revTxt.innerText=revenue.toLocaleString()+" บาท"
+expTxt.innerText=expense.toLocaleString()+" บาท"
 profitTxt.innerText=profit.toLocaleString()+" บาท"
 
 let revDiff="-"
@@ -473,51 +468,26 @@ st.reduce((a,b)=>a+b.work,0)+" / "+
 st.reduce((a,b)=>a+b.off,0)+" / "+
 st.reduce((a,b)=>a+b.warn,0)
 
-const profitKPI=document.getElementById("kpiProfit")
+if(chart) chart.destroy()
 
-profitKPI.classList.remove("good","warn","danger")
+chart=new Chart(document.getElementById("mainChart"),{
 
-if(profit<0) profitKPI.classList.add("danger")
-else if(profit<5000) profitKPI.classList.add("warn")
-else profitKPI.classList.add("good")
-
-if(revChart) revChart.destroy()
-
-revChart=new Chart(document.getElementById("revChart"),{
 type:"bar",
-data:{
-labels:["Tour","Rent","Other"],
-datasets:[{
-data:[tour,rent,other],
-backgroundColor:["#16a34a","#22c55e","#4ade80"]
-}]
-}
-})
 
-if(expChart) expChart.destroy()
-
-expChart=new Chart(document.getElementById("expChart"),{
-type:"pie",
-data:{
-labels:["Fuel","Repair","Salary","Other"],
-datasets:[{
-data:[fuel,repair,salary,expOther],
-backgroundColor:["#f59e0b","#ef4444","#3b82f6","#6b7280"]
-}]
-}
-})
-
-if(profitChart) profitChart.destroy()
-
-profitChart=new Chart(document.getElementById("profitChart"),{
-type:"bar",
 data:{
 labels:["Revenue","Expense","Profit"],
 datasets:[{
 data:[revenue,expense,profit],
 backgroundColor:["#16a34a","#ef4444","#6366f1"]
 }]
+},
+
+options:{
+plugins:{
+legend:{display:false}
 }
+}
+
 })
 
 }
