@@ -4,7 +4,6 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-
 <title>แดชบอร์ดธุรกิจ ATV</title>
 
 <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
@@ -63,14 +62,14 @@ padding:30px;
 background:white;
 border-radius:16px;
 padding:26px;
-margin-bottom:28px;
+margin-bottom:26px;
 box-shadow:var(--shadow);
 }
 
 .kpi-row{
 display:grid;
 grid-template-columns:repeat(auto-fit,minmax(200px,1fr));
-gap:22px;
+gap:20px;
 margin-bottom:30px;
 }
 
@@ -96,7 +95,7 @@ width:100%;
 padding:10px;
 border-radius:8px;
 border:1px solid #ddd;
-margin-top:5px;
+margin-top:6px;
 }
 
 button.primary{
@@ -107,12 +106,25 @@ border-radius:10px;
 background:#ef4b3f;
 color:white;
 font-weight:bold;
-margin-top:12px;
+margin-top:10px;
 cursor:pointer;
 }
 
-canvas{
-margin-top:20px;
+.toast{
+position:fixed;
+bottom:30px;
+left:50%;
+transform:translateX(-50%);
+background:#16a34a;
+color:white;
+padding:14px 22px;
+border-radius:10px;
+opacity:0;
+transition:.3s;
+}
+
+.toast.show{
+opacity:1;
 }
 
 </style>
@@ -171,7 +183,7 @@ margin-top:20px;
 <div class="value" id="expTxt">-</div>
 </div>
 
-<div class="kpi" id="kpiProfit">
+<div class="kpi">
 <div>กำไรสุทธิ</div>
 <div class="value" id="profitTxt">-</div>
 </div>
@@ -197,9 +209,9 @@ margin-top:20px;
 
 <h3>สรุปรายได้ / รายจ่าย / กำไร</h3>
 
-<canvas id="mainChart" height="120"></canvas>
+<canvas id="mainChart"></canvas>
 
-<button class="primary" onclick="captureDashboard()">
+<button id="capBtn" class="primary" onclick="captureDashboard()">
 📸 บันทึกภาพรายงาน
 </button>
 
@@ -220,11 +232,17 @@ margin-top:20px;
 
 <h3>รถพร้อมบริการ</h3>
 
-<label>มากสุด</label>
+<label>มากสุด (คัน)</label>
 <input id="maxCar">
 
-<label>น้อยสุด</label>
+<label>จำนวนวัน</label>
+<input id="maxDay">
+
+<label>น้อยสุด (คัน)</label>
 <input id="minCar">
+
+<label>จำนวนวัน</label>
+<input id="minDay">
 
 </div>
 
@@ -289,22 +307,25 @@ margin-top:20px;
 </div>
 </div>
 
+<div id="toast" class="toast">บันทึกสำเร็จ</div>
+
 <script>
 
 let chart
 
+function showToast(msg){
+const t=document.getElementById("toast")
+t.innerText=msg
+t.classList.add("show")
+setTimeout(()=>t.classList.remove("show"),2000)
+}
+
 function showPage(id,btn){
-
 document.querySelectorAll("section").forEach(s=>s.style.display="none")
-
 document.getElementById(id).style.display="block"
-
 document.querySelectorAll(".menu-btn").forEach(b=>b.classList.remove("active"))
-
 btn.classList.add("active")
-
 if(id==="dashboard") renderDashboard()
-
 }
 
 function saveMonth(){
@@ -318,7 +339,9 @@ const data={
 
 cars:{
 max:+maxCar.value||0,
-min:+minCar.value||0
+maxDay:+maxDay.value||0,
+min:+minCar.value||0,
+minDay:+minDay.value||0
 },
 
 revenue:{
@@ -344,16 +367,19 @@ agent:+agent.value||0
 
 localStorage.setItem("ATV_"+month.value,JSON.stringify(data))
 
-alert("บันทึกข้อมูลเรียบร้อย")
+showToast("บันทึกข้อมูลเรียบร้อย ✓")
 
 }
 
 function loadMonth(){
 
-const d=JSON.parse(localStorage.getItem("ATV_"+month.value) || "{}")
+const d=JSON.parse(localStorage.getItem("ATV_"+month.value)||"{}")
 
 maxCar.value=d.cars?.max||""
+maxDay.value=d.cars?.maxDay||""
+
 minCar.value=d.cars?.min||""
+minDay.value=d.cars?.minDay||""
 
 revTour.value=d.revenue?.tour||""
 revRent.value=d.revenue?.rent||""
@@ -375,14 +401,14 @@ function renderDashboard(){
 const m=dashMonth.value
 if(!m)return
 
-const d=JSON.parse(localStorage.getItem("ATV_"+m) || "{}")
+const d=JSON.parse(localStorage.getItem("ATV_"+m)||"{}")
 
 const prevDate=new Date(m+"-01")
 prevDate.setMonth(prevDate.getMonth()-1)
 
 const prevKey="ATV_"+prevDate.toISOString().slice(0,7)
 
-const p=JSON.parse(localStorage.getItem(prevKey) || "{}")
+const p=JSON.parse(localStorage.getItem(prevKey)||"{}")
 
 const revenue=(d.revenue?.tour||0)+(d.revenue?.rent||0)+(d.revenue?.other||0)
 
@@ -392,16 +418,14 @@ const profit=revenue-expense
 
 const prevRevenue=(p.revenue?.tour||0)+(p.revenue?.rent||0)+(p.revenue?.other||0)
 
-const prevExpense=(p.expenses?.fuel||0)+(p.expenses?.repair||0)+(p.expenses?.salary||0)+(p.expenses?.other||0)
+const prevProfit=prevRevenue-((p.expenses?.fuel||0)+(p.expenses?.repair||0)+(p.expenses?.salary||0)+(p.expenses?.other||0))
 
-const prevProfit=prevRevenue-prevExpense
+maxTxt.innerText=(d.cars?.max||0)+" คัน ("+(d.cars?.maxDay||0)+" วัน)"
+minTxt.innerText=(d.cars?.min||0)+" คัน ("+(d.cars?.minDay||0)+" วัน)"
 
 revTxt.innerText=revenue.toLocaleString()+" บาท"
 expTxt.innerText=expense.toLocaleString()+" บาท"
 profitTxt.innerText=profit.toLocaleString()+" บาท"
-
-maxTxt.innerText=(d.cars?.max||0)+" คัน"
-minTxt.innerText=(d.cars?.min||0)+" คัน"
 
 custTxt.innerText=(d.customers?.walkin||0)+" / "+(d.customers?.villa||0)+" / "+(d.customers?.agent||0)
 
@@ -432,11 +456,21 @@ options:{plugins:{legend:{display:false}}}
 
 function captureDashboard(){
 
+const btn=document.getElementById("capBtn")
+btn.style.display="none"
+
 html2canvas(document.getElementById("dashboard")).then(canvas=>{
+
 const link=document.createElement("a")
+
 link.download="รายงาน-ATV-"+dashMonth.value+".png"
+
 link.href=canvas.toDataURL()
+
 link.click()
+
+btn.style.display="block"
+
 })
 
 }
