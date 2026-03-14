@@ -8,116 +8,118 @@
 <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 
 <style>
+
 :root{
- --primary:#ef4b3f;
- --green:#16a34a;
- --yellow:#f59e0b;
- --red:#dc2626;
- --bg:#f4f6f8;
- --card:#ffffff;
- --text:#1f2937;
- --shadow:0 10px 25px rgba(0,0,0,.08);
- --radius:18px;
+--primary:#ef4b3f;
+--green:#16a34a;
+--yellow:#f59e0b;
+--red:#dc2626;
+--bg:#f4f6f8;
+--card:#ffffff;
+--text:#1f2937;
+--shadow:0 10px 30px rgba(0,0,0,.08);
+--radius:18px;
 }
 
 body{
- margin:0;
- font-family:Tahoma,Arial;
- background:var(--bg);
- color:var(--text);
+margin:0;
+font-family:Tahoma,Arial;
+background:var(--bg);
+color:var(--text);
 }
 
 .app{
- display:grid;
- grid-template-columns:260px 1fr;
- min-height:100vh;
+display:grid;
+grid-template-columns:260px 1fr;
+min-height:100vh;
 }
 
 .sidebar{
- background:#fff;
- padding:20px;
- box-shadow:var(--shadow);
+background:#fff;
+padding:20px;
+box-shadow:var(--shadow);
 }
 
 .menu-btn{
- width:100%;
- padding:12px;
- margin-bottom:10px;
- border:none;
- border-radius:12px;
- background:#f3f4f6;
- cursor:pointer;
- text-align:left;
+width:100%;
+padding:12px;
+margin-bottom:10px;
+border:none;
+border-radius:12px;
+background:#f3f4f6;
+cursor:pointer;
+text-align:left;
 }
 
 .menu-btn.active{
- background:var(--primary);
- color:white;
- font-weight:bold;
+background:var(--primary);
+color:white;
+font-weight:bold;
 }
 
 .main{
- padding:28px;
+padding:28px;
 }
 
 .card{
- background:var(--card);
- border-radius:var(--radius);
- padding:20px;
- margin-bottom:20px;
- box-shadow:var(--shadow);
+background:var(--card);
+border-radius:var(--radius);
+padding:22px;
+margin-bottom:22px;
+box-shadow:var(--shadow);
 }
 
 .kpi-row{
- display:grid;
- grid-template-columns:repeat(auto-fit,minmax(220px,1fr));
- gap:20px;
+display:grid;
+grid-template-columns:repeat(auto-fit,minmax(220px,1fr));
+gap:22px;
 }
 
 .kpi{
- padding:18px;
- background:#f9fafb;
- border-radius:14px;
- border-left:6px solid transparent;
+padding:18px;
+border-radius:14px;
+background:#f9fafb;
+border-left:6px solid transparent;
 }
 
-.kpi.good{border-color:var(--green);}
-.kpi.warn{border-color:var(--yellow);}
-.kpi.danger{border-color:var(--red);}
+.kpi.good{border-color:var(--green)}
+.kpi.warn{border-color:var(--yellow)}
+.kpi.danger{border-color:var(--red)}
 
 .value{
- font-size:22px;
- font-weight:bold;
+font-size:22px;
+font-weight:bold;
 }
 
 input{
- width:100%;
- padding:10px;
- margin-top:5px;
- border-radius:10px;
- border:1px solid #ddd;
+width:100%;
+padding:10px;
+border-radius:10px;
+border:1px solid #ddd;
+margin-top:6px;
 }
 
 button.primary{
- width:100%;
- padding:14px;
- margin-top:10px;
- border:none;
- border-radius:12px;
- background:var(--primary);
- color:white;
- font-weight:bold;
- cursor:pointer;
+width:100%;
+padding:14px;
+border:none;
+border-radius:12px;
+background:var(--primary);
+color:white;
+font-weight:bold;
+margin-top:10px;
+cursor:pointer;
 }
 
 table{
- width:100%;
- border-collapse:collapse;
+width:100%;
+border-collapse:collapse;
 }
 
 td,th{
- padding:8px;
+padding:8px;
 }
+
 </style>
 </head>
 
@@ -126,9 +128,17 @@ td,th{
 <div class="app">
 
 <div class="sidebar">
+
 <h3>ATV Dashboard</h3>
-<button class="menu-btn active" onclick="showPage('dashboard',this)">ภาพรวม</button>
-<button class="menu-btn" onclick="showPage('detail',this)">บันทึกข้อมูล</button>
+
+<button class="menu-btn active" onclick="showPage('dashboard',this)">
+ภาพรวม
+</button>
+
+<button class="menu-btn" onclick="showPage('detail',this)">
+บันทึกข้อมูล
+</button>
+
 </div>
 
 <div class="main">
@@ -167,6 +177,16 @@ td,th{
 </div>
 
 <div class="kpi">
+<div>รายได้เทียบเดือนก่อน</div>
+<div class="value" id="revDiffTxt">-</div>
+</div>
+
+<div class="kpi">
+<div>กำไรเทียบเดือนก่อน</div>
+<div class="value" id="profitDiffTxt">-</div>
+</div>
+
+<div class="kpi">
 <div>ลูกค้า (Walk-in / Villa / Agent)</div>
 <div class="value" id="custTxt">-</div>
 </div>
@@ -179,7 +199,18 @@ td,th{
 </div>
 
 <div class="card">
-<canvas id="mainChart"></canvas>
+<h3>กราฟรายได้</h3>
+<canvas id="revChart"></canvas>
+</div>
+
+<div class="card">
+<h3>กราฟรายจ่าย</h3>
+<canvas id="expChart"></canvas>
+</div>
+
+<div class="card">
+<h3>กราฟกำไร</h3>
+<canvas id="profitChart"></canvas>
 </div>
 
 </section>
@@ -234,6 +265,7 @@ td,th{
 </div>
 
 <div class="card">
+
 <h3>ลูกค้า</h3>
 
 <label>Walk-in</label>
@@ -252,20 +284,28 @@ td,th{
 <h3>พนักงาน</h3>
 
 <table id="staffTable">
+
 <tr>
 <th>ชื่อ</th>
 <th>ทำงาน</th>
 <th>หยุด</th>
 <th>เตือน</th>
 </tr>
+
 </table>
 
-<button class="primary" onclick="addStaff()">เพิ่มพนักงาน</button>
+<button class="primary" onclick="addStaff()">
+เพิ่มพนักงาน
+</button>
 
 </div>
 
 <div class="card">
-<button class="primary" onclick="saveMonth()">บันทึกข้อมูล</button>
+
+<button class="primary" onclick="saveMonth()">
+บันทึกข้อมูล
+</button>
+
 </div>
 
 </section>
@@ -275,153 +315,216 @@ td,th{
 
 <script>
 
-let chart;
+let revChart
+let expChart
+let profitChart
 
 function showPage(id,btn){
- document.querySelectorAll("section").forEach(s=>s.style.display="none");
- document.getElementById(id).style.display="block";
 
- document.querySelectorAll(".menu-btn").forEach(b=>b.classList.remove("active"));
- btn.classList.add("active");
+document.querySelectorAll("section").forEach(s=>s.style.display="none")
+document.getElementById(id).style.display="block"
 
- if(id==="dashboard") renderDashboard();
+document.querySelectorAll(".menu-btn").forEach(b=>b.classList.remove("active"))
+btn.classList.add("active")
+
+if(id==="dashboard") renderDashboard()
+
 }
 
 function addStaff(){
- const row=document.createElement("tr");
- row.innerHTML=`
- <td><input></td>
- <td><input type="number"></td>
- <td><input type="number"></td>
- <td><input type="number"></td>`;
- staffTable.appendChild(row);
+
+const row=document.createElement("tr")
+
+row.innerHTML=`
+<td><input></td>
+<td><input type="number"></td>
+<td><input type="number"></td>
+<td><input type="number"></td>
+`
+
+staffTable.appendChild(row)
+
 }
 
 function saveMonth(){
 
- if(!month.value){
-  alert("กรุณาเลือกเดือน");
-  return;
- }
+if(!month.value){
+alert("กรุณาเลือกเดือน")
+return
+}
 
- const staff=[...staffTable.querySelectorAll("tr")]
- .slice(1)
- .map(r=>{
-  const i=r.querySelectorAll("input");
-  return{
-   name:i[0].value,
-   work:+i[1].value||0,
-   off:+i[2].value||0,
-   warn:+i[3].value||0
-  };
- });
+const staff=[...staffTable.querySelectorAll("tr")]
+.slice(1)
+.map(r=>{
+const i=r.querySelectorAll("input")
+return{
+name:i[0].value,
+work:+i[1].value||0,
+off:+i[2].value||0,
+warn:+i[3].value||0
+}
+})
 
- const data={
-  cars:{
-   max:+maxCar.value||0,
-   min:+minCar.value||0
-  },
+const data={
 
-  revenue:{
-   tour:+revTour.value||0,
-   rent:+revRent.value||0,
-   other:+revOther.value||0
-  },
+cars:{
+max:+maxCar.value||0,
+min:+minCar.value||0
+},
 
-  expenses:{
-   fuel:+expFuel.value||0,
-   repair:+expRepair.value||0,
-   salary:+expSalary.value||0,
-   other:+expOther.value||0
-  },
+revenue:{
+tour:+revTour.value||0,
+rent:+revRent.value||0,
+other:+revOther.value||0
+},
 
-  customers:{
-   walkin:+walkin.value||0,
-   villa:+villa.value||0,
-   agent:+agent.value||0
-  },
+expenses:{
+fuel:+expFuel.value||0,
+repair:+expRepair.value||0,
+salary:+expSalary.value||0,
+other:+expOther.value||0
+},
 
-  staff
- };
+customers:{
+walkin:+walkin.value||0,
+villa:+villa.value||0,
+agent:+agent.value||0
+},
 
- localStorage.setItem("ATV_"+month.value,JSON.stringify(data));
+staff
 
- alert("บันทึกสำเร็จ");
+}
+
+localStorage.setItem("ATV_"+month.value,JSON.stringify(data))
+
+alert("บันทึกสำเร็จ")
+
 }
 
 function renderDashboard(){
 
- const m=dashMonth.value;
- if(!m)return;
+const m=dashMonth.value
+if(!m)return
 
- const d=JSON.parse(localStorage.getItem("ATV_"+m)||"{}");
+const d=JSON.parse(localStorage.getItem("ATV_"+m)||"{}")
 
- const tour=d.revenue?.tour||0;
- const rent=d.revenue?.rent||0;
- const other=d.revenue?.other||0;
+const prevDate=new Date(m+"-01")
+prevDate.setMonth(prevDate.getMonth()-1)
 
- const fuel=d.expenses?.fuel||0;
- const repair=d.expenses?.repair||0;
- const salary=d.expenses?.salary||0;
- const expOther=d.expenses?.other||0;
+const prevKey="ATV_"+prevDate.toISOString().slice(0,7)
 
- const revenue=tour+rent+other;
- const expense=fuel+repair+salary+expOther;
- const profit=revenue-expense;
+const p=JSON.parse(localStorage.getItem(prevKey)||"{}")
 
- maxTxt.innerText=(d.cars?.max||0)+" คัน";
- minTxt.innerText=(d.cars?.min||0)+" คัน";
+const tour=d.revenue?.tour||0
+const rent=d.revenue?.rent||0
+const other=d.revenue?.other||0
 
- revTxt.innerText=revenue.toLocaleString()+" บาท";
- profitTxt.innerText=profit.toLocaleString()+" บาท";
+const fuel=d.expenses?.fuel||0
+const repair=d.expenses?.repair||0
+const salary=d.expenses?.salary||0
+const expOther=d.expenses?.other||0
 
- custTxt.innerText=
- (d.customers?.walkin||0)+" / "+
- (d.customers?.villa||0)+" / "+
- (d.customers?.agent||0);
+const revenue=tour+rent+other
+const expense=fuel+repair+salary+expOther
+const profit=revenue-expense
 
- const st=d.staff||[];
+const prevRevenue=
+(p.revenue?.tour||0)+
+(p.revenue?.rent||0)+
+(p.revenue?.other||0)
 
- staffTxt.innerText=
- st.reduce((a,b)=>a+b.work,0)+" / "+
- st.reduce((a,b)=>a+b.off,0)+" / "+
- st.reduce((a,b)=>a+b.warn,0);
+const prevExpense=
+(p.expenses?.fuel||0)+
+(p.expenses?.repair||0)+
+(p.expenses?.salary||0)+
+(p.expenses?.other||0)
 
- const profitKPI=document.getElementById("kpiProfit");
+const prevProfit=prevRevenue-prevExpense
 
- profitKPI.classList.remove("good","warn","danger");
+maxTxt.innerText=(d.cars?.max||0)+" คัน"
+minTxt.innerText=(d.cars?.min||0)+" คัน"
 
- if(profit<0) profitKPI.classList.add("danger");
- else if(profit<5000) profitKPI.classList.add("warn");
- else profitKPI.classList.add("good");
+revTxt.innerText=revenue.toLocaleString()+" บาท"
+profitTxt.innerText=profit.toLocaleString()+" บาท"
 
- if(chart) chart.destroy();
+let revDiff="-"
+let profitDiff="-"
 
- chart=new Chart(document.getElementById("mainChart"),{
-  type:"bar",
-  data:{
-   labels:[
-    "Tour","Rent","Other",
-    "Fuel","Repair","Salary","Expense Other"
-   ],
-   datasets:[{
-    label:"รายได้ / รายจ่าย",
-    data:[
-     tour,rent,other,
-     fuel,repair,salary,expOther
-    ],
-    backgroundColor:[
-     "#16a34a","#22c55e","#4ade80",
-     "#ef4444","#dc2626","#b91c1c","#991b1b"
-    ]
-   }]
-  }
- });
+if(prevRevenue){
+revDiff=((revenue-prevRevenue)/prevRevenue*100).toFixed(1)+"%"
+}
+
+if(prevProfit){
+profitDiff=((profit-prevProfit)/prevProfit*100).toFixed(1)+"%"
+}
+
+revDiffTxt.innerText=revDiff
+profitDiffTxt.innerText=profitDiff
+
+custTxt.innerText=
+(d.customers?.walkin||0)+" / "+
+(d.customers?.villa||0)+" / "+
+(d.customers?.agent||0)
+
+const st=d.staff||[]
+
+staffTxt.innerText=
+st.reduce((a,b)=>a+b.work,0)+" / "+
+st.reduce((a,b)=>a+b.off,0)+" / "+
+st.reduce((a,b)=>a+b.warn,0)
+
+const profitKPI=document.getElementById("kpiProfit")
+
+profitKPI.classList.remove("good","warn","danger")
+
+if(profit<0) profitKPI.classList.add("danger")
+else if(profit<5000) profitKPI.classList.add("warn")
+else profitKPI.classList.add("good")
+
+if(revChart) revChart.destroy()
+
+revChart=new Chart(document.getElementById("revChart"),{
+type:"bar",
+data:{
+labels:["Tour","Rent","Other"],
+datasets:[{
+data:[tour,rent,other],
+backgroundColor:["#16a34a","#22c55e","#4ade80"]
+}]
+}
+})
+
+if(expChart) expChart.destroy()
+
+expChart=new Chart(document.getElementById("expChart"),{
+type:"pie",
+data:{
+labels:["Fuel","Repair","Salary","Other"],
+datasets:[{
+data:[fuel,repair,salary,expOther],
+backgroundColor:["#f59e0b","#ef4444","#3b82f6","#6b7280"]
+}]
+}
+})
+
+if(profitChart) profitChart.destroy()
+
+profitChart=new Chart(document.getElementById("profitChart"),{
+type:"bar",
+data:{
+labels:["Revenue","Expense","Profit"],
+datasets:[{
+data:[revenue,expense,profit],
+backgroundColor:["#16a34a","#ef4444","#6366f1"]
+}]
+}
+})
 
 }
 
-dashMonth.value=new Date().toISOString().slice(0,7);
-renderDashboard();
+dashMonth.value=new Date().toISOString().slice(0,7)
+
+renderDashboard()
 
 </script>
 
