@@ -4,7 +4,8 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>แดชบอร์ดธุรกิจ ATV</title>
+
+<title>ATV Executive Dashboard</title>
 
 <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/html2canvas@1.4.1/dist/html2canvas.min.js"></script>
@@ -45,21 +46,22 @@ color:white;
 }
 
 .main{
-padding:30px;
+padding:32px;
 }
 
 .card{
 background:white;
 border-radius:16px;
-padding:26px;
-margin-bottom:26px;
+padding:28px;
+margin-bottom:28px;
 box-shadow:0 10px 30px rgba(0,0,0,.08);
 }
 
 .kpi-row{
 display:grid;
-grid-template-columns:repeat(auto-fit,minmax(200px,1fr));
-gap:20px;
+grid-template-columns:repeat(auto-fit,minmax(220px,1fr));
+gap:24px;
+margin-bottom:32px;
 }
 
 .kpi{
@@ -90,7 +92,7 @@ border-radius:10px;
 background:#ef4b3f;
 color:white;
 font-weight:bold;
-margin-top:10px;
+margin-top:12px;
 cursor:pointer;
 }
 
@@ -101,7 +103,7 @@ left:50%;
 transform:translateX(-50%);
 background:#16a34a;
 color:white;
-padding:14px 22px;
+padding:14px 24px;
 border-radius:10px;
 opacity:0;
 transition:.3s;
@@ -137,12 +139,14 @@ opacity:1;
 <section id="dashboard">
 
 <div class="card">
-<h2>ภาพรวมธุรกิจ ATV</h2>
+<h2>ภาพรวมกิจการ ATV</h2>
 </div>
 
 <div class="card">
+
 <label>เลือกเดือน</label>
 <input type="month" id="dashMonth" onchange="renderDashboard()">
+
 </div>
 
 <div class="kpi-row">
@@ -202,6 +206,7 @@ opacity:1;
 </div>
 
 </section>
+
 
 <section id="detail" style="display:none">
 
@@ -307,9 +312,11 @@ setTimeout(()=>t.classList.remove("show"),2000)
 function showPage(id,btn){
 
 document.querySelectorAll("section").forEach(s=>s.style.display="none")
+
 document.getElementById(id).style.display="block"
 
 document.querySelectorAll(".menu-btn").forEach(b=>b.classList.remove("active"))
+
 btn.classList.add("active")
 
 if(id==="dashboard") renderDashboard()
@@ -327,10 +334,10 @@ return
 const data={
 
 cars:{
-max:parseInt(document.getElementById("maxCar").value)||0,
-maxDay:parseInt(document.getElementById("maxDay").value)||0,
-min:parseInt(document.getElementById("minCar").value)||0,
-minDay:parseInt(document.getElementById("minDay").value)||0
+max:parseInt(maxCar.value)||0,
+maxDay:parseInt(maxDay.value)||0,
+min:parseInt(minCar.value)||0,
+minDay:parseInt(minDay.value)||0
 },
 
 revenue:{
@@ -356,7 +363,7 @@ agent:parseInt(agent.value)||0
 
 localStorage.setItem("ATV_"+m,JSON.stringify(data))
 
-showToast("บันทึกข้อมูลเรียบร้อย")
+showToast("บันทึกข้อมูลเรียบร้อย ✓")
 
 renderDashboard()
 
@@ -394,11 +401,25 @@ if(!m)return
 
 const d=JSON.parse(localStorage.getItem("ATV_"+m)||"{}")
 
+const prevDate=new Date(m+"-01")
+prevDate.setMonth(prevDate.getMonth()-1)
+
+const prevKey="ATV_"+prevDate.toISOString().slice(0,7)
+
+const p=JSON.parse(localStorage.getItem(prevKey)||"{}")
+
 const revenue=(d.revenue?.tour||0)+(d.revenue?.rent||0)+(d.revenue?.other||0)
 
 const expense=(d.expenses?.fuel||0)+(d.expenses?.repair||0)+(d.expenses?.salary||0)+(d.expenses?.other||0)
 
 const profit=revenue-expense
+
+const prevRevenue=(p.revenue?.tour||0)+(p.revenue?.rent||0)+(p.revenue?.other||0)
+
+const prevExpense=(p.expenses?.fuel||0)+(p.expenses?.repair||0)+(p.expenses?.salary||0)+(p.expenses?.other||0)
+
+const prevProfit=prevRevenue-prevExpense
+
 
 maxTxt.innerText=(d.cars?.max||0)+" คัน ("+(d.cars?.maxDay||0)+" วัน)"
 minTxt.innerText=(d.cars?.min||0)+" คัน ("+(d.cars?.minDay||0)+" วัน)"
@@ -408,6 +429,20 @@ expTxt.innerText=expense.toLocaleString()+" บาท"
 profitTxt.innerText=profit.toLocaleString()+" บาท"
 
 custTxt.innerText=(d.customers?.walkin||0)+" / "+(d.customers?.villa||0)+" / "+(d.customers?.agent||0)
+
+
+let revDiff="-"
+let profitDiff="-"
+
+if(prevRevenue>0)
+revDiff=((revenue-prevRevenue)/prevRevenue*100).toFixed(1)+"%"
+
+if(prevProfit!=0)
+profitDiff=((profit-prevProfit)/prevProfit*100).toFixed(1)+"%"
+
+revDiffTxt.innerText=revDiff
+profitDiffTxt.innerText=profitDiff
+
 
 if(chart) chart.destroy()
 
@@ -430,6 +465,7 @@ backgroundColor:["#16a34a","#ef4444","#6366f1"]
 function captureDashboard(){
 
 const btn=document.getElementById("capBtn")
+
 btn.style.display="none"
 
 html2canvas(document.getElementById("dashboard")).then(canvas=>{
