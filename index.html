@@ -4,6 +4,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
 <title>แดชบอร์ดธุรกิจ ATV</title>
 
 <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
@@ -338,29 +339,29 @@ return
 const data={
 
 cars:{
-max:+maxCar.value||0,
-maxDay:+maxDay.value||0,
-min:+minCar.value||0,
-minDay:+minDay.value||0
+max:Number(maxCar.value)||0,
+maxDay:Number(maxDay.value)||0,
+min:Number(minCar.value)||0,
+minDay:Number(minDay.value)||0
 },
 
 revenue:{
-tour:+revTour.value||0,
-rent:+revRent.value||0,
-other:+revOther.value||0
+tour:Number(revTour.value)||0,
+rent:Number(revRent.value)||0,
+other:Number(revOther.value)||0
 },
 
 expenses:{
-fuel:+expFuel.value||0,
-repair:+expRepair.value||0,
-salary:+expSalary.value||0,
-other:+expOther.value||0
+fuel:Number(expFuel.value)||0,
+repair:Number(expRepair.value)||0,
+salary:Number(expSalary.value)||0,
+other:Number(expOther.value)||0
 },
 
 customers:{
-walkin:+walkin.value||0,
-villa:+villa.value||0,
-agent:+agent.value||0
+walkin:Number(walkin.value)||0,
+villa:Number(villa.value)||0,
+agent:Number(agent.value)||0
 }
 
 }
@@ -368,6 +369,8 @@ agent:+agent.value||0
 localStorage.setItem("ATV_"+month.value,JSON.stringify(data))
 
 showToast("บันทึกข้อมูลเรียบร้อย ✓")
+
+renderDashboard()
 
 }
 
