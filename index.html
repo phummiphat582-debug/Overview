@@ -3,396 +3,1348 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>ATV Repair Cost Analyzer</title>
+<title>ATV Executive Dashboard</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link href="https://fonts.googleapis.com/css2?family=Sarabun:wght@300;400;500;600;700&family=IBM+Plex+Mono:wght@400;600&display=swap" rel="stylesheet">
-<link rel="stylesheet" href="css/style.css">
+<script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/html2canvas@1.4.1/dist/html2canvas.min.js"></script>
+<style>
+*{box-sizing:border-box;margin:0;padding:0}
+
+:root{
+  --red:#D94335;
+  --red-light:#FDECEA;
+  --green:#1A7A4A;
+  --green-light:#E6F4EC;
+  --green-mid:#5BB582;
+  --blue:#1A5FAD;
+  --blue-light:#E6EFF9;
+  --orange:#D97706;
+  --orange-light:#FEF3E2;
+  --purple:#6B3FA0;
+  --purple-light:#F0EBF8;
+  --gray-50:#F8F9FA;
+  --gray-100:#F1F3F5;
+  --gray-200:#E9ECEF;
+  --gray-300:#DEE2E6;
+  --gray-400:#CED4DA;
+  --gray-500:#ADB5BD;
+  --gray-600:#6C757D;
+  --gray-700:#495057;
+  --gray-800:#343A40;
+  --gray-900:#212529;
+  --sidebar-w:260px;
+  --font-main:'Sarabun',sans-serif;
+  --font-mono:'IBM Plex Mono',monospace;
+  --radius:12px;
+  --radius-sm:8px;
+  --shadow:0 2px 8px rgba(0,0,0,.06),0 0 1px rgba(0,0,0,.08);
+  --shadow-md:0 4px 16px rgba(0,0,0,.09),0 0 1px rgba(0,0,0,.08);
+}
+
+body{font-family:var(--font-main);background:var(--gray-50);color:var(--gray-900);font-size:15px;line-height:1.55}
+.layout{display:flex;min-height:100vh}
+
+/* Sidebar */
+.sidebar{
+  width:var(--sidebar-w);flex-shrink:0;
+  background:#fff;border-right:1px solid var(--gray-200);
+  display:flex;flex-direction:column;
+  position:sticky;top:0;height:100vh;overflow-y:auto;
+}
+.sidebar-header{padding:24px 20px 18px;border-bottom:1px solid var(--gray-100)}
+.sidebar-logo{display:flex;align-items:center;gap:12px;margin-bottom:4px}
+.logo-badge{
+  width:40px;height:40px;background:var(--red);border-radius:10px;
+  display:flex;align-items:center;justify-content:center;
+  font-size:17px;font-weight:700;color:#fff;letter-spacing:-1px
+}
+.logo-title{font-size:18px;font-weight:700;color:var(--gray-900)}
+.logo-sub{font-size:11px;color:var(--gray-500);margin-top:1px}
+.sidebar-nav{padding:14px 10px;flex:1}
+.nav-section-title{
+  font-size:10px;font-weight:700;color:var(--gray-400);
+  letter-spacing:.1em;text-transform:uppercase;
+  padding:8px 12px 5px
+}
+.nav-btn{
+  display:flex;align-items:center;gap:10px;
+  width:100%;padding:9px 12px;
+  border:none;background:transparent;border-radius:var(--radius-sm);
+  color:var(--gray-600);font-family:var(--font-main);font-size:14px;font-weight:500;
+  cursor:pointer;text-align:left;transition:background .15s,color .15s;margin-bottom:2px;
+}
+.nav-btn:hover{background:var(--gray-100);color:var(--gray-900)}
+.nav-btn.active{background:var(--red-light);color:var(--red);font-weight:600}
+.nav-icon{
+  width:30px;height:30px;border-radius:7px;
+  display:flex;align-items:center;justify-content:center;
+  font-size:15px;flex-shrink:0;background:var(--gray-100);
+}
+.nav-btn.active .nav-icon{background:rgba(217,67,53,.12)}
+.sidebar-footer{padding:14px 18px;border-top:1px solid var(--gray-100);font-size:11px;color:var(--gray-400)}
+
+/* Main */
+.main{flex:1;padding:32px 36px;max-width:1160px}
+.page-header{
+  display:flex;align-items:flex-start;justify-content:space-between;
+  margin-bottom:24px;flex-wrap:wrap;gap:14px;
+}
+.page-title{font-size:22px;font-weight:700;color:var(--gray-900)}
+.page-subtitle{font-size:13px;color:var(--gray-500);margin-top:2px}
+
+/* Month Picker */
+.month-picker{
+  display:flex;align-items:center;gap:8px;
+  background:#fff;border:1px solid var(--gray-200);
+  border-radius:var(--radius-sm);padding:8px 14px;
+  font-size:14px;color:var(--gray-700);
+}
+.month-picker input[type=month],.month-picker input[type=number]{
+  border:none;background:transparent;font-family:var(--font-main);
+  font-size:14px;color:var(--gray-800);font-weight:600;cursor:pointer;outline:none;
+}
+
+/* Cards */
+.card{
+  background:#fff;border-radius:var(--radius);
+  border:1px solid var(--gray-200);padding:22px;margin-bottom:20px;
+  box-shadow:var(--shadow);
+}
+.card-title{
+  font-size:14px;font-weight:700;color:var(--gray-800);
+  margin-bottom:16px;display:flex;align-items:center;gap:8px;
+}
+.card-title-icon{
+  width:26px;height:26px;border-radius:6px;
+  display:flex;align-items:center;justify-content:center;font-size:13px;
+}
+
+/* KPI Grid */
+.kpi-grid{
+  display:grid;grid-template-columns:repeat(auto-fill,minmax(190px,1fr));
+  gap:14px;margin-bottom:20px;
+}
+.kpi-card{
+  background:#fff;border:1px solid var(--gray-200);border-radius:var(--radius);
+  padding:18px;box-shadow:var(--shadow);position:relative;overflow:hidden;
+}
+.kpi-card::before{
+  content:'';position:absolute;top:0;left:0;right:0;height:3px;
+  background:var(--accent,var(--gray-300));
+}
+.kpi-label{font-size:11px;font-weight:700;color:var(--gray-500);text-transform:uppercase;letter-spacing:.05em;margin-bottom:7px}
+.kpi-value{font-size:22px;font-weight:700;color:var(--gray-900);font-family:var(--font-mono);line-height:1.1;margin-bottom:3px}
+.kpi-sub{font-size:11px;color:var(--gray-500);margin-top:2px}
+.kpi-badge{
+  display:inline-flex;align-items:center;gap:3px;
+  font-size:11px;font-weight:700;padding:2px 8px;border-radius:20px;margin-top:5px;
+}
+.badge-up{background:#E6F4EC;color:#1A7A4A}
+.badge-down{background:#FDECEA;color:#C0392B}
+
+/* Tables */
+.data-table{width:100%;border-collapse:collapse;font-size:13px}
+.data-table th{
+  text-align:left;padding:9px 12px;
+  font-size:10px;font-weight:700;letter-spacing:.07em;color:var(--gray-500);text-transform:uppercase;
+  border-bottom:1px solid var(--gray-200);background:var(--gray-50);
+}
+.data-table th:last-child{text-align:right}
+.data-table td{padding:10px 12px;border-bottom:1px solid var(--gray-100);color:var(--gray-800);vertical-align:middle}
+.data-table td:last-child{text-align:right;font-family:var(--font-mono);font-weight:600}
+.data-table tr:last-child td{border-bottom:none}
+.data-table tr:hover td{background:var(--gray-50)}
+.data-table .total-row td{font-weight:700;color:var(--gray-900);background:var(--gray-50);border-top:2px solid var(--gray-200)}
+
+/* Progress */
+.progress-bar{height:6px;background:var(--gray-100);border-radius:4px;overflow:hidden;margin-top:6px}
+.progress-fill{height:100%;border-radius:4px;transition:width .5s ease}
+
+/* Layouts */
+.two-col{display:grid;grid-template-columns:1fr 1fr;gap:20px;margin-bottom:20px}
+.three-col{display:grid;grid-template-columns:1fr 1fr 1fr;gap:16px;margin-bottom:20px}
+.chart-row{display:grid;grid-template-columns:2fr 1fr;gap:20px;margin-bottom:20px}
+
+/* Forms */
+.form-row{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:10px}
+.field{display:flex;flex-direction:column;gap:4px}
+.field label{font-size:12px;font-weight:700;color:var(--gray-600)}
+.field input,.field select{
+  padding:9px 12px;border:1px solid var(--gray-300);border-radius:var(--radius-sm);
+  font-family:var(--font-main);font-size:13px;color:var(--gray-800);
+  transition:border-color .15s,box-shadow .15s;outline:none;background:#fff;
+}
+.field input:focus,.field select:focus{border-color:var(--red);box-shadow:0 0 0 3px rgba(217,67,53,.1)}
+.field textarea{
+  padding:9px 12px;border:1px solid var(--gray-300);border-radius:var(--radius-sm);
+  font-family:var(--font-main);font-size:13px;color:var(--gray-800);
+  resize:vertical;outline:none;width:100%;
+  transition:border-color .15s,box-shadow .15s;
+}
+.field textarea:focus{border-color:var(--red);box-shadow:0 0 0 3px rgba(217,67,53,.1)}
+
+/* Buttons */
+.btn{
+  display:inline-flex;align-items:center;gap:7px;
+  padding:10px 18px;border:none;border-radius:var(--radius-sm);
+  font-family:var(--font-main);font-size:13px;font-weight:600;
+  cursor:pointer;transition:all .15s;
+}
+.btn-primary{background:var(--red);color:#fff}
+.btn-primary:hover{background:#C13328}
+.btn-secondary{background:var(--gray-100);color:var(--gray-700)}
+.btn-secondary:hover{background:var(--gray-200)}
+.btn-outline{background:transparent;border:1px solid var(--gray-300);color:var(--gray-700)}
+.btn-outline:hover{background:var(--gray-50)}
+
+/* Toast */
+.toast{
+  position:fixed;bottom:24px;left:50%;transform:translateX(-50%) translateY(20px);
+  background:var(--gray-900);color:#fff;
+  padding:11px 20px;border-radius:var(--radius-sm);
+  font-size:13px;font-weight:500;
+  opacity:0;transition:all .25s;z-index:999;pointer-events:none;
+}
+.toast.show{opacity:1;transform:translateX(-50%) translateY(0)}
+
+/* Legend */
+.legend-list{list-style:none;display:flex;flex-direction:column;gap:8px;flex:1}
+.legend-item{display:flex;align-items:center;gap:9px}
+.legend-dot{width:9px;height:9px;border-radius:3px;flex-shrink:0}
+.legend-name{font-size:12px;color:var(--gray-600);flex:1}
+.legend-val{font-family:var(--font-mono);font-size:13px;font-weight:600;color:var(--gray-800)}
+.legend-pct{font-size:11px;color:var(--gray-400);margin-left:3px}
+
+/* Donut */
+.donut-wrap{position:relative;width:150px;height:150px;flex-shrink:0}
+.donut-center{position:absolute;top:50%;left:50%;transform:translate(-50%,-50%);text-align:center}
+.donut-center-value{font-size:20px;font-weight:700;font-family:var(--font-mono);color:var(--gray-900)}
+.donut-center-label{font-size:10px;color:var(--gray-500);margin-top:1px}
+
+/* History chip */
+.history-chip{
+  display:inline-flex;align-items:center;
+  padding:2px 9px;border-radius:20px;
+  font-size:11px;font-weight:700;font-family:var(--font-mono);
+}
+
+/* Export */
+.export-bar{
+  display:flex;gap:10px;align-items:center;
+  padding:14px 18px;background:var(--gray-50);
+  border-radius:var(--radius-sm);border:1px solid var(--gray-200);margin-top:8px;
+}
+
+/* Profit bar */
+.profit-ratio-bar{height:10px;border-radius:6px;background:var(--gray-100);overflow:hidden;margin:10px 0 4px}
+.profit-ratio-fill{height:100%;border-radius:6px;background:linear-gradient(90deg,#1A7A4A,#5BB582)}
+.profit-ratio-fill.negative{background:linear-gradient(90deg,#C0392B,#E57373)}
+
+/* Note */
+.note-card{
+  background:var(--orange-light);border:1px solid #F6D29A;
+  border-radius:var(--radius-sm);padding:11px 14px;
+  font-size:12px;color:#7D4A0F;display:flex;gap:8px;align-items:flex-start;margin-bottom:14px;
+}
+
+/* Tabs for chart sections */
+.chart-tabs{display:flex;gap:6px;margin-bottom:16px;flex-wrap:wrap}
+.chart-tab{
+  padding:6px 14px;border:1px solid var(--gray-200);border-radius:20px;
+  font-size:12px;font-weight:600;color:var(--gray-600);cursor:pointer;background:#fff;
+  transition:all .15s;
+}
+.chart-tab.active{background:var(--red);color:#fff;border-color:var(--red)}
+
+/* Scrollbar */
+::-webkit-scrollbar{width:4px}
+::-webkit-scrollbar-track{background:transparent}
+::-webkit-scrollbar-thumb{background:var(--gray-300);border-radius:10px}
+
+/* Empty state */
+.empty-state{text-align:center;padding:40px 24px;color:var(--gray-400)}
+.empty-icon{font-size:36px;margin-bottom:10px}
+.empty-text{font-size:14px;font-weight:600;color:var(--gray-500)}
+.empty-sub{font-size:12px;margin-top:3px;color:var(--gray-400)}
+
+.page{display:none}
+.page.active{display:block}
+
+/* Responsive tweaks */
+@media(max-width:900px){
+  .two-col,.three-col,.chart-row{grid-template-columns:1fr}
+  .main{padding:20px 16px}
+  .sidebar{width:220px}
+}
+@media(max-width:640px){
+  .layout{flex-direction:column}
+  .sidebar{width:100%;height:auto;position:static}
+  .sidebar-nav{display:flex;flex-wrap:wrap;gap:4px;padding:10px}
+  .nav-section-title{display:none}
+  .nav-btn{padding:7px 10px;font-size:12px}
+  .kpi-grid{grid-template-columns:1fr 1fr}
+}
+
+/* Chart container */
+.chart-container{position:relative}
+.chart-label{font-size:10px;font-weight:700;color:var(--gray-400);text-transform:uppercase;letter-spacing:.07em;margin-bottom:10px}
+</style>
 </head>
 <body>
 
-<header class="app-header">
-  <div class="header-inner">
-    <div class="header-brand">
-      <div class="brand-badge">ATV</div>
+<div class="layout">
+
+<!-- SIDEBAR -->
+<aside class="sidebar">
+  <div class="sidebar-header">
+    <div class="sidebar-logo">
+      <div class="logo-badge">ATV</div>
       <div>
-        <div class="brand-title">Repair Cost Analyzer</div>
-        <div class="brand-sub">ระบบเปรียบเทียบค่าซ่อม — ซ่อมเอง vs ออู่นอก</div>
+        <div class="logo-title">ATV Dashboard</div>
+        <div class="logo-sub">ระบบบริหารกิจการ</div>
       </div>
-    </div>
-    <div class="header-actions">
-      <button class="btn btn-ghost" onclick="exportCSV()">
-        <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
-        ส่งออก CSV
-      </button>
-      <button class="btn btn-ghost" onclick="showImport()">
-        <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
-        นำเข้า
-      </button>
     </div>
   </div>
-</header>
-
-<nav class="tab-nav">
-  <div class="tab-nav-inner">
-    <button class="tab-btn active" data-tab="compare">
-      <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M18 20V10"/><path d="M12 20V4"/><path d="M6 20v-6"/></svg>
-      เปรียบเทียบค่าซ่อม
+  <nav class="sidebar-nav">
+    <div class="nav-section-title">ภาพรวม</div>
+    <button class="nav-btn active" onclick="showPage('overview',this)">
+      <span class="nav-icon">📊</span>สรุปภาพรวม
     </button>
-    <button class="tab-btn" data-tab="log">
-      <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/></svg>
-      บันทึกประวัติ
+    <button class="nav-btn" onclick="showPage('finance',this)">
+      <span class="nav-icon">💰</span>การเงิน รายได้/รายจ่าย
     </button>
-    <button class="tab-btn" data-tab="charts">
-      <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="18" y1="20" x2="18" y2="10"/><line x1="12" y1="20" x2="12" y2="4"/><line x1="6" y1="20" x2="6" y2="14"/><line x1="2" y1="20" x2="22" y2="20"/></svg>
-      กราฟวิเคราะห์
+    <button class="nav-btn" onclick="showPage('fleet',this)">
+      <span class="nav-icon">🏍️</span>รถพร้อมให้บริการ
     </button>
-    <button class="tab-btn" data-tab="summary">
-      <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="7" height="7"/><rect x="14" y="3" width="7" height="7"/><rect x="14" y="14" width="7" height="7"/><rect x="3" y="14" width="7" height="7"/></svg>
-      สรุปภาพรวม
+    <button class="nav-btn" onclick="showPage('customers',this)">
+      <span class="nav-icon">👥</span>ลูกค้าและช่องทาง
     </button>
+    <button class="nav-btn" onclick="showPage('history',this)">
+      <span class="nav-icon">📅</span>ประวัติรายเดือน
+    </button>
+    <div class="nav-section-title" style="margin-top:10px">จัดการข้อมูล</div>
+    <button class="nav-btn" onclick="showPage('entry',this)">
+      <span class="nav-icon">📝</span>บันทึก / แก้ไขข้อมูล
+    </button>
+  </nav>
+  <div class="sidebar-footer">
+    ATV Business System v2.1<br>
+    <span id="footerDate" style="color:var(--gray-500)"></span>
   </div>
-</nav>
+</aside>
 
-<main class="app-main">
+<!-- MAIN -->
+<main class="main">
 
-  <!-- ══ TAB: COMPARE ══ -->
-  <section class="tab-section active" id="tab-compare">
-    <div class="compare-grid">
+<!-- ════ PAGE: OVERVIEW ════ -->
+<div class="page active" id="page-overview">
+  <div class="page-header">
+    <div>
+      <div class="page-title">สรุปภาพรวมกิจการ ATV</div>
+      <div class="page-subtitle" id="overviewMonthLabel">กำลังโหลด...</div>
+    </div>
+    <div class="month-picker">📅 <input type="month" id="dashMonth" onchange="renderAll()"></div>
+  </div>
 
-      <!-- Self repair -->
-      <div class="repair-card self-card">
-        <div class="card-header">
-          <div class="card-icon self-icon">
-            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M14.7 6.3a1 1 0 0 0 0 1.4l1.6 1.6a1 1 0 0 0 1.4 0l3.77-3.77a6 6 0 0 1-7.94 7.94l-6.91 6.91a2.12 2.12 0 0 1-3-3l6.91-6.91a6 6 0 0 1 7.94-7.94l-3.76 3.76z"/></svg>
-          </div>
-          <div>
-            <div class="card-title">ซ่อมเอง / ช่างประจำ</div>
-            <div class="card-sub">ต้นทุนที่ควบคุมได้เอง</div>
+  <div class="kpi-grid" id="kpiGrid"></div>
+
+  <!-- Main bar chart full width -->
+  <div class="card">
+    <div class="card-title"><div class="card-title-icon" style="background:#EBF1FD">📈</div>รายได้ / รายจ่าย / กำไร (เดือนนี้)</div>
+    <div style="position:relative;height:240px">
+      <canvas id="mainBarChart"></canvas>
+    </div>
+  </div>
+
+  <!-- Revenue source + Expense breakdown -->
+  <div class="two-col">
+    <div class="card">
+      <div class="card-title"><div class="card-title-icon" style="background:#E6F4EC">💵</div>แหล่งรายได้</div>
+      <div style="display:flex;gap:20px;align-items:center">
+        <div class="donut-wrap">
+          <canvas id="revDonut"></canvas>
+          <div class="donut-center">
+            <div class="donut-center-value" id="revDonutTotal">0</div>
+            <div class="donut-center-label">บาท (K)</div>
           </div>
         </div>
-
-        <div class="field-group">
-          <div class="field-row">
-            <div class="field">
-              <label>ค่าอะไหล่ <span class="unit">บาท</span></label>
-              <input type="number" id="s_parts" value="0" min="0" class="inp-self" oninput="recalc()">
-            </div>
-            <div class="field">
-              <label>ค่าแรงตัวเอง <span class="unit">บาท</span></label>
-              <input type="number" id="s_labor" value="0" min="0" class="inp-self" oninput="recalc()">
-            </div>
-          </div>
-          <div class="field-row">
-            <div class="field">
-              <label>ค่าจ้างช่างประจำ <span class="unit">บาท</span></label>
-              <input type="number" id="s_staff" value="0" min="0" class="inp-self" oninput="recalc()">
-            </div>
-            <div class="field">
-              <label>ค่าเครื่องมือ <span class="unit">บาท</span></label>
-              <input type="number" id="s_tools" value="0" min="0" class="inp-self" oninput="recalc()">
-            </div>
-          </div>
-          <div class="field-row">
-            <div class="field">
-              <label>ค่าเดินทาง/อื่นๆ <span class="unit">บาท</span></label>
-              <input type="number" id="s_misc" value="0" min="0" class="inp-self" oninput="recalc()">
-            </div>
-            <div class="field">
-              <label>เวลาที่ใช้ <span class="unit">ชม.</span></label>
-              <input type="number" id="s_hours" value="0" min="0" step="0.5" class="inp-self" oninput="recalc()">
-            </div>
-          </div>
-        </div>
-
-        <div class="card-total self-total">
-          <span>รวมซ่อมเอง</span>
-          <span class="total-value" id="s_total">0 ฿</span>
-        </div>
-      </div>
-
-      <!-- Verdict -->
-      <div class="verdict-column">
-        <div class="vs-badge">VS</div>
-        <div id="verdict-box" class="verdict-box">
-          <div class="verdict-placeholder">กรอกข้อมูลทั้งสองฝั่ง</div>
-        </div>
-        <div class="saving-box" id="saving-box" style="display:none">
-          <div class="saving-label">ประหยัดได้</div>
-          <div class="saving-value" id="saving-value">0 ฿</div>
-          <div class="saving-pct" id="saving-pct">0%</div>
-        </div>
-      </div>
-
-      <!-- Garage -->
-      <div class="repair-card garage-card">
-        <div class="card-header">
-          <div class="card-icon garage-icon">
-            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/><polyline points="9 22 9 12 15 12 15 22"/></svg>
-          </div>
-          <div>
-            <div class="card-title">ส่งออู่นอก</div>
-            <div class="card-sub">ต้นทุนรวมทั้งหมด</div>
-          </div>
-        </div>
-
-        <div class="field-group">
-          <div class="field-row">
-            <div class="field">
-              <label>ค่าซ่อม/ค่าแรง <span class="unit">บาท</span></label>
-              <input type="number" id="g_labor" value="0" min="0" class="inp-garage" oninput="recalc()">
-            </div>
-            <div class="field">
-              <label>ค่าอะไหล่ที่ออู่เรียก <span class="unit">บาท</span></label>
-              <input type="number" id="g_parts" value="0" min="0" class="inp-garage" oninput="recalc()">
-            </div>
-          </div>
-          <div class="field-row">
-            <div class="field">
-              <label>ค่าขนส่ง/ลากรถ <span class="unit">บาท</span></label>
-              <input type="number" id="g_transport" value="0" min="0" class="inp-garage" oninput="recalc()">
-            </div>
-            <div class="field">
-              <label>เวลารอรับรถ <span class="unit">วัน</span></label>
-              <input type="number" id="g_days" value="0" min="0" class="inp-garage" oninput="recalc()">
-            </div>
-          </div>
-          <div class="field-row">
-            <div class="field">
-              <label>รายได้หายไประหว่างรอ <span class="unit">บาท</span></label>
-              <input type="number" id="g_lost" value="0" min="0" class="inp-garage" oninput="recalc()">
-            </div>
-            <div class="field">
-              <label>ค่าใช้จ่ายอื่น <span class="unit">บาท</span></label>
-              <input type="number" id="g_misc" value="0" min="0" class="inp-garage" oninput="recalc()">
-            </div>
-          </div>
-        </div>
-
-        <div class="card-total garage-total">
-          <span>รวมออู่นอก</span>
-          <span class="total-value" id="g_total">0 ฿</span>
-        </div>
+        <ul class="legend-list" id="revLegend"></ul>
       </div>
     </div>
-
-    <!-- Bar comparison -->
-    <div class="section-card" id="bar-section" style="display:none">
-      <div class="section-card-header">
-        <h2 class="section-title">เปรียบเทียบรายหมวด</h2>
-        <div class="legend-row">
-          <span class="legend-dot self-dot"></span><span class="legend-text">ซ่อมเอง</span>
-          <span class="legend-dot garage-dot"></span><span class="legend-text">ออู่นอก</span>
-        </div>
-      </div>
-      <div class="chart-wrap" style="height:260px">
-        <canvas id="barChart" role="img" aria-label="กราฟแท่งเปรียบเทียบค่าซ่อมรายหมวด"></canvas>
-      </div>
-    </div>
-
-    <!-- Detail table -->
-    <div class="section-card" id="detail-table-section" style="display:none">
-      <div class="section-card-header">
-        <h2 class="section-title">ตารางเปรียบเทียบ</h2>
-      </div>
-      <div class="table-wrap">
-        <table class="data-table" id="compare-table"></table>
-      </div>
-    </div>
-
-    <!-- Save form -->
-    <div class="section-card">
-      <div class="section-card-header">
-        <h2 class="section-title">บันทึกรายการนี้</h2>
-      </div>
-      <div class="save-row">
-        <div class="field" style="flex:2">
-          <label>ชื่อรายการซ่อม</label>
-          <input type="text" id="save_name" placeholder="เช่น เปลี่ยนโซ่, ซ่อมเครื่อง">
-        </div>
-        <div class="field" style="flex:1">
-          <label>วันที่</label>
-          <input type="date" id="save_date">
-        </div>
-        <div class="field" style="flex:1">
-          <label>ทะเบียน/รถ</label>
-          <input type="text" id="save_plate" placeholder="เช่น ATV-001">
-        </div>
-        <button class="btn btn-primary save-btn" onclick="saveLog()">
-          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M19 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11l5 5v11a2 2 0 0 1-2 2z"/><polyline points="17 21 17 13 7 13 7 21"/><polyline points="7 3 7 8 15 8"/></svg>
-          บันทึก
-        </button>
-      </div>
-    </div>
-  </section>
-
-  <!-- ══ TAB: LOG ══ -->
-  <section class="tab-section" id="tab-log">
-    <div class="log-toolbar">
-      <div class="log-filters">
-        <select id="filter-type" onchange="renderLog()">
-          <option value="all">ทุกประเภท</option>
-          <option value="self">ซ่อมเองดีกว่า</option>
-          <option value="garage">ออู่นอกดีกว่า</option>
-        </select>
-        <input type="text" id="filter-search" placeholder="ค้นหารายการ..." oninput="renderLog()">
-        <select id="filter-plate" onchange="renderLog()">
-          <option value="">ทุกคัน</option>
-        </select>
-      </div>
-      <div class="log-actions">
-        <span class="log-count" id="log-count-label">0 รายการ</span>
-        <button class="btn btn-danger-ghost" onclick="clearLog()">ลบทั้งหมด</button>
-      </div>
-    </div>
-
-    <div class="section-card" style="padding:0;overflow:hidden">
-      <div class="table-wrap">
-        <table class="data-table" id="log-table">
-          <thead>
-            <tr>
-              <th>วันที่</th>
-              <th>รายการ</th>
-              <th>ทะเบียน</th>
-              <th>ซ่อมเอง</th>
-              <th>ออู่นอก</th>
-              <th>วิธีที่คุ้ม</th>
-              <th>ประหยัด</th>
-              <th></th>
-            </tr>
-          </thead>
-          <tbody id="log-rows"></tbody>
-        </table>
-      </div>
-    </div>
-  </section>
-
-  <!-- ══ TAB: CHARTS ══ -->
-  <section class="tab-section" id="tab-charts">
-    <div class="charts-toolbar">
-      <select id="chart-period" onchange="renderCharts()">
-        <option value="all">ทุกช่วงเวลา</option>
-        <option value="3">3 เดือนล่าสุด</option>
-        <option value="6">6 เดือนล่าสุด</option>
-        <option value="12">12 เดือนล่าสุด</option>
-      </select>
-      <select id="chart-plate-filter" onchange="renderCharts()">
-        <option value="">ทุกคัน</option>
-      </select>
-    </div>
-
-    <div class="charts-grid">
-      <div class="section-card">
-        <div class="section-card-header">
-          <h2 class="section-title">ค่าซ่อมสะสมเปรียบเทียบ</h2>
-          <div class="legend-row">
-            <span class="legend-dot self-dot"></span><span class="legend-text">ซ่อมเอง</span>
-            <span class="legend-dot garage-dot"></span><span class="legend-text">ออู่นอก</span>
+    <div class="card">
+      <div class="card-title"><div class="card-title-icon" style="background:#FDECEA">📤</div>โครงสร้างรายจ่าย</div>
+      <div style="display:flex;gap:20px;align-items:center">
+        <div class="donut-wrap">
+          <canvas id="expDonut"></canvas>
+          <div class="donut-center">
+            <div class="donut-center-value" id="expDonutTotal">0</div>
+            <div class="donut-center-label">บาท (K)</div>
           </div>
         </div>
-        <div class="chart-wrap" style="height:240px">
-          <canvas id="cumLineChart" role="img" aria-label="กราฟเส้นค่าซ่อมสะสม"></canvas>
-        </div>
+        <ul class="legend-list" id="expLegend"></ul>
       </div>
+    </div>
+  </div>
 
-      <div class="section-card">
-        <div class="section-card-header">
-          <h2 class="section-title">การประหยัดต่อครั้ง</h2>
-        </div>
-        <div class="chart-wrap" style="height:240px">
-          <canvas id="savingBarChart" role="img" aria-label="กราฟแท่งการประหยัดต่อครั้ง"></canvas>
-        </div>
-      </div>
-
-      <div class="section-card">
-        <div class="section-card-header">
-          <h2 class="section-title">สัดส่วนค่าใช้จ่าย (รวมทุกครั้ง)</h2>
-          <div class="legend-row">
-            <span class="legend-dot self-dot"></span><span class="legend-text">ซ่อมเอง</span>
-            <span class="legend-dot garage-dot"></span><span class="legend-text">ออู่นอก</span>
+  <!-- Profit analysis + Customer donut -->
+  <div class="two-col">
+    <div class="card">
+      <div class="card-title"><div class="card-title-icon" style="background:#FEF3E2">💡</div>วิเคราะห์กำไร</div>
+      <div id="profitAnalysis"></div>
+    </div>
+    <div class="card">
+      <div class="card-title"><div class="card-title-icon" style="background:#F0EBF8">👥</div>ช่องทางลูกค้า</div>
+      <div style="display:flex;gap:16px;align-items:center">
+        <div class="donut-wrap">
+          <canvas id="custDonut"></canvas>
+          <div class="donut-center">
+            <div class="donut-center-value" id="custTotal">0</div>
+            <div class="donut-center-label">คน</div>
           </div>
         </div>
-        <div style="display:flex;align-items:center;gap:24px;padding:0 8px">
-          <div class="chart-wrap" style="height:200px;flex:1">
-            <canvas id="pieChart" role="img" aria-label="กราฟวงกลมสัดส่วนรายหมวด"></canvas>
-          </div>
-          <div id="pie-legend" class="pie-legend"></div>
-        </div>
-      </div>
-
-      <div class="section-card">
-        <div class="section-card-header">
-          <h2 class="section-title">ค่าซ่อมรายเดือน</h2>
-          <div class="legend-row">
-            <span class="legend-dot self-dot"></span><span class="legend-text">ซ่อมเอง</span>
-            <span class="legend-dot garage-dot"></span><span class="legend-text">ออู่นอก</span>
-          </div>
-        </div>
-        <div class="chart-wrap" style="height:240px">
-          <canvas id="monthlyChart" role="img" aria-label="กราฟค่าซ่อมรายเดือน"></canvas>
-        </div>
+        <ul class="legend-list" id="custLegend"></ul>
       </div>
     </div>
-  </section>
+  </div>
 
-  <!-- ══ TAB: SUMMARY ══ -->
-  <section class="tab-section" id="tab-summary">
-    <div class="kpi-grid" id="sum-kpi"></div>
+  <div class="export-bar">
+    <span style="font-size:13px;color:var(--gray-600);flex:1">ส่งออกรายงานสรุปเดือนนี้</span>
+    <button class="btn btn-outline" onclick="captureDashboard()">📸 บันทึกภาพ PNG</button>
+  </div>
+</div>
 
-    <div class="summary-grid">
-      <div class="section-card">
-        <div class="section-card-header">
-          <h2 class="section-title">ผลลัพธ์โดยรวม</h2>
-        </div>
-        <div id="sum-result"></div>
-      </div>
-
-      <div class="section-card">
-        <div class="section-card-header">
-          <h2 class="section-title">หมวดที่แพงที่สุด</h2>
-        </div>
-        <div id="sum-top-cat"></div>
-      </div>
+<!-- ════ PAGE: FINANCE ════ -->
+<div class="page" id="page-finance">
+  <div class="page-header">
+    <div>
+      <div class="page-title">การเงิน รายได้ / รายจ่าย</div>
+      <div class="page-subtitle" id="financeMonthLabel">-</div>
     </div>
+    <div class="month-picker">📅 <input type="month" id="finMonth" onchange="renderFinance()"></div>
+  </div>
 
-    <div class="section-card">
-      <div class="section-card-header">
-        <h2 class="section-title">ประวัติย้อนหลัง 5 รายการล่าสุด</h2>
-      </div>
-      <div id="sum-recent"></div>
+  <!-- Stacked bar comparison -->
+  <div class="card">
+    <div class="card-title"><div class="card-title-icon" style="background:#EBF1FD">📊</div>เปรียบเทียบรายได้-รายจ่าย-กำไร</div>
+    <div style="position:relative;height:200px">
+      <canvas id="finSummaryChart"></canvas>
     </div>
+  </div>
 
-    <div class="ai-prompt-card">
-      <div class="ai-icon">
-        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><path d="M12 8v4"/><path d="M12 16h.01"/></svg>
-      </div>
-      <div>
-        <div class="ai-title">ต้องการคำแนะนำเพิ่มเติม?</div>
-        <div class="ai-desc">วิเคราะห์ข้อมูลของคุณด้วย AI</div>
-      </div>
-      <button class="btn btn-primary" onclick="askAI()">วิเคราะห์ด้วย AI ↗</button>
+  <div class="two-col">
+    <div class="card">
+      <div class="card-title"><div class="card-title-icon" style="background:#E6F4EC">💵</div>รายละเอียดรายได้</div>
+      <table class="data-table" id="revTable"></table>
     </div>
-  </section>
-
-</main>
-
-<!-- Import modal -->
-<div class="modal-overlay" id="import-modal" onclick="closeImport(event)">
-  <div class="modal">
-    <div class="modal-header">
-      <h3>นำเข้าข้อมูล (JSON)</h3>
-      <button class="modal-close" onclick="document.getElementById('import-modal').style.display='none'">✕</button>
+    <div class="card">
+      <div class="card-title"><div class="card-title-icon" style="background:#FDECEA">📤</div>รายละเอียดรายจ่าย</div>
+      <table class="data-table" id="expTable"></table>
     </div>
-    <textarea id="import-text" class="import-textarea" placeholder='วางข้อมูล JSON ที่นี่...'></textarea>
-    <div class="modal-footer">
-      <button class="btn btn-ghost" onclick="document.getElementById('import-modal').style.display='none'">ยกเลิก</button>
-      <button class="btn btn-primary" onclick="doImport()">นำเข้า</button>
+  </div>
+
+  <!-- 6-month trend -->
+  <div class="card">
+    <div class="card-title"><div class="card-title-icon" style="background:#EBF1FD">📉</div>แนวโน้ม 6 เดือนย้อนหลัง</div>
+    <div class="chart-tabs" id="trendTabs">
+      <button class="chart-tab active" onclick="switchTrend('line',this)">📈 เส้น</button>
+      <button class="chart-tab" onclick="switchTrend('bar',this)">📊 แท่ง</button>
+    </div>
+    <div style="position:relative;height:260px">
+      <canvas id="trendChart"></canvas>
+    </div>
+  </div>
+
+  <!-- Revenue vs Expense Radar-like stacked area -->
+  <div class="card">
+    <div class="card-title"><div class="card-title-icon" style="background:#F0EBF8">🔢</div>สัดส่วนรายจ่ายแต่ละหมวด (6 เดือน)</div>
+    <div style="position:relative;height:240px">
+      <canvas id="expStackChart"></canvas>
     </div>
   </div>
 </div>
 
-<div id="toast-container"></div>
+<!-- ════ PAGE: FLEET ════ -->
+<div class="page" id="page-fleet">
+  <div class="page-header">
+    <div>
+      <div class="page-title">รถพร้อมให้บริการ</div>
+      <div class="page-subtitle" id="fleetMonthLabel">-</div>
+    </div>
+    <div class="month-picker">📅 <input type="month" id="fleetMonth" onchange="renderFleet()"></div>
+  </div>
+  <div id="fleetContent"></div>
+</div>
 
-<script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.js"></script>
-<script src="js/app.js"></script>
+<!-- ════ PAGE: CUSTOMERS ════ -->
+<div class="page" id="page-customers">
+  <div class="page-header">
+    <div>
+      <div class="page-title">ลูกค้าและช่องทาง</div>
+      <div class="page-subtitle" id="custMonthLabel">-</div>
+    </div>
+    <div class="month-picker">📅 <input type="month" id="custMonth" onchange="renderCustomers()"></div>
+  </div>
+  <div id="customerContent"></div>
+</div>
+
+<!-- ════ PAGE: HISTORY ════ -->
+<div class="page" id="page-history">
+  <div class="page-header">
+    <div>
+      <div class="page-title">ประวัติรายเดือน</div>
+      <div class="page-subtitle">ข้อมูลทุกเดือนที่บันทึกไว้</div>
+    </div>
+    <div class="month-picker">📅 ปี <input type="number" id="histYear" min="2020" max="2099" style="width:72px" onchange="renderHistory()"></div>
+  </div>
+  <div id="historyContent"></div>
+</div>
+
+<!-- ════ PAGE: ENTRY ════ -->
+<div class="page" id="page-entry">
+  <div class="page-header">
+    <div>
+      <div class="page-title">บันทึก / แก้ไขข้อมูล</div>
+      <div class="page-subtitle">กรอกข้อมูลรายเดือน</div>
+    </div>
+    <div class="month-picker">📅 <input type="month" id="entryMonth" onchange="loadEntry()"></div>
+  </div>
+
+  <div class="note-card">⚠️ กรุณาเลือกเดือนก่อนกรอกข้อมูล แล้วกดบันทึกเมื่อครบถ้วน</div>
+
+  <div class="two-col">
+    <div>
+      <div class="card">
+        <div class="card-title"><div class="card-title-icon" style="background:#EBF1FD">🏍️</div>รถพร้อมให้บริการ</div>
+        <div class="form-row">
+          <div class="field"><label>มากสุด (คัน)</label><input id="e_maxCar" type="number" min="0" placeholder="0"></div>
+          <div class="field"><label>จำนวนวัน</label><input id="e_maxDay" type="number" min="0" placeholder="0"></div>
+        </div>
+        <div class="form-row">
+          <div class="field"><label>น้อยสุด (คัน)</label><input id="e_minCar" type="number" min="0" placeholder="0"></div>
+          <div class="field"><label>จำนวนวัน</label><input id="e_minDay" type="number" min="0" placeholder="0"></div>
+        </div>
+        <div class="form-row">
+          <div class="field"><label>ฝูงรถทั้งหมด (คัน)</label><input id="e_totalCar" type="number" min="0" placeholder="0"></div>
+          <div class="field"><label>วันในเดือน</label><input id="e_daysInMonth" type="number" min="28" max="31" placeholder="30"></div>
+        </div>
+      </div>
+      <div class="card">
+        <div class="card-title"><div class="card-title-icon" style="background:#E6F4EC">💵</div>รายได้</div>
+        <div class="form-row">
+          <div class="field"><label>ทัวร์ (บาท)</label><input id="e_revTour" type="number" min="0" placeholder="0"></div>
+          <div class="field"><label>เช่า (บาท)</label><input id="e_revRent" type="number" min="0" placeholder="0"></div>
+        </div>
+        <div class="form-row">
+          <div class="field"><label>อื่นๆ (บาท)</label><input id="e_revOther" type="number" min="0" placeholder="0"></div>
+          <div class="field"></div>
+        </div>
+      </div>
+    </div>
+    <div>
+      <div class="card">
+        <div class="card-title"><div class="card-title-icon" style="background:#FDECEA">📤</div>รายจ่าย</div>
+        <div class="form-row">
+          <div class="field"><label>ค่าน้ำมัน (บาท)</label><input id="e_expFuel" type="number" min="0" placeholder="0"></div>
+          <div class="field"><label>ค่าซ่อม (บาท)</label><input id="e_expRepair" type="number" min="0" placeholder="0"></div>
+        </div>
+        <div class="form-row">
+          <div class="field"><label>เงินเดือน (บาท)</label><input id="e_expSalary" type="number" min="0" placeholder="0"></div>
+          <div class="field"><label>อื่นๆ (บาท)</label><input id="e_expOther" type="number" min="0" placeholder="0"></div>
+        </div>
+      </div>
+      <div class="card">
+        <div class="card-title"><div class="card-title-icon" style="background:#F0EBF8">👥</div>ลูกค้า</div>
+        <div class="form-row">
+          <div class="field"><label>Walk-in (คน)</label><input id="e_walkin" type="number" min="0" placeholder="0"></div>
+          <div class="field"><label>Villa (คน)</label><input id="e_villa" type="number" min="0" placeholder="0"></div>
+        </div>
+        <div class="form-row">
+          <div class="field"><label>Agent (คน)</label><input id="e_agent" type="number" min="0" placeholder="0"></div>
+          <div class="field"></div>
+        </div>
+      </div>
+      <div class="card">
+        <div class="card-title"><div class="card-title-icon" style="background:#FEF3E2">📋</div>หมายเหตุ</div>
+        <div class="field">
+          <label>บันทึกประจำเดือน</label>
+          <textarea id="e_note" rows="3" placeholder="เช่น สภาพอากาศ / โปรโมชัน / ปัญหาที่พบ"></textarea>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div style="display:flex;gap:10px;justify-content:flex-end">
+    <button class="btn btn-secondary" onclick="clearEntry()">ล้างแบบฟอร์ม</button>
+    <button class="btn btn-primary" onclick="saveEntry()">💾 บันทึกข้อมูล</button>
+  </div>
+</div>
+
+</main>
+</div>
+
+<div id="toast" class="toast"></div>
+
+<script>
+// ══════════════ UTILITIES ══════════════
+const THB = n => (n||0).toLocaleString('th-TH') + ' ฿';
+const PCT = n => (n>=0?'+':'')+n.toFixed(1)+'%';
+const NUM = n => (n||0).toLocaleString('th-TH');
+
+const MONTH_TH = ['ม.ค.','ก.พ.','มี.ค.','เม.ย.','พ.ค.','มิ.ย.','ก.ค.','ส.ค.','ก.ย.','ต.ค.','พ.ย.','ธ.ค.'];
+
+function fmtLong(m){
+  const d = new Date(m+'-01');
+  return d.toLocaleDateString('th-TH',{month:'long',year:'numeric'});
+}
+function fmtShort(m){
+  const d = new Date(m+'-01');
+  return MONTH_TH[d.getMonth()]+' '+(d.getFullYear()+543).toString().slice(-2);
+}
+
+function today(){return new Date().toISOString().slice(0,7)}
+
+function prevMonth(m){
+  const d=new Date(m+'-01');
+  d.setMonth(d.getMonth()-1);
+  return d.toISOString().slice(0,7);
+}
+
+function getMonthRange(endM,count){
+  const arr=[];
+  for(let i=count-1;i>=0;i--){
+    const d=new Date(endM+'-01');
+    d.setMonth(d.getMonth()-i);
+    arr.push(d.toISOString().slice(0,7));
+  }
+  return arr;
+}
+
+function showToast(msg,ok=true){
+  const t=document.getElementById('toast');
+  t.textContent=msg;
+  t.style.background=ok?'#1A7A4A':'#C0392B';
+  t.classList.add('show');
+  setTimeout(()=>t.classList.remove('show'),2500);
+}
+
+function emptyState(title,sub){
+  return `<div class="empty-state"><div class="empty-icon">📭</div><div class="empty-text">${title}</div><div class="empty-sub">${sub}</div></div>`;
+}
+
+// ══════════════ DATA ACCESS ══════════════
+function getData(m){return JSON.parse(localStorage.getItem('ATV2_'+m)||'{}')}
+function saveData(m,data){localStorage.setItem('ATV2_'+m,JSON.stringify(data))}
+
+function calc(d){
+  const rev=(d.revenue?.tour||0)+(d.revenue?.rent||0)+(d.revenue?.other||0);
+  const exp=(d.expenses?.fuel||0)+(d.expenses?.repair||0)+(d.expenses?.salary||0)+(d.expenses?.other||0);
+  const profit=rev-exp;
+  const profitRatio=rev>0?profit/rev*100:0;
+  const custTotal=(d.customers?.walkin||0)+(d.customers?.villa||0)+(d.customers?.agent||0);
+  return{rev,exp,profit,profitRatio,custTotal};
+}
+
+// ══════════════ CHART REGISTRY ══════════════
+const _charts={};
+function mkChart(id,cfg){
+  if(_charts[id])_charts[id].destroy();
+  const ctx=document.getElementById(id);
+  if(!ctx)return null;
+  _charts[id]=new Chart(ctx,cfg);
+  return _charts[id];
+}
+
+const COLORS={
+  green:'#5BB582', greenBg:'rgba(91,181,130,.15)',
+  red:'#E57373', redBg:'rgba(229,115,115,.12)',
+  blue:'#5E8FD1', blueBg:'rgba(94,143,209,.12)',
+  orange:'#EFC97A', orangeBg:'rgba(239,201,122,.15)',
+  purple:'#B085D4', purpleBg:'rgba(176,133,212,.15)',
+};
+
+const defaultFont = {family:'Sarabun'};
+
+// ══════════════ PAGE NAVIGATION ══════════════
+function showPage(id,btn){
+  document.querySelectorAll('.page').forEach(p=>p.classList.remove('active'));
+  document.getElementById('page-'+id).classList.add('active');
+  document.querySelectorAll('.nav-btn').forEach(b=>b.classList.remove('active'));
+  btn.classList.add('active');
+
+  const m=document.getElementById('dashMonth').value||today();
+  if(id==='overview'){renderAll();}
+  if(id==='finance'){document.getElementById('finMonth').value=m;renderFinance();}
+  if(id==='fleet'){document.getElementById('fleetMonth').value=m;renderFleet();}
+  if(id==='customers'){document.getElementById('custMonth').value=m;renderCustomers();}
+  if(id==='history'){document.getElementById('histYear').value=new Date().getFullYear();renderHistory();}
+  if(id==='entry'){document.getElementById('entryMonth').value=m;loadEntry();}
+}
+
+// ══════════════ OVERVIEW ══════════════
+function renderAll(){
+  const m=document.getElementById('dashMonth').value||today();
+  const d=getData(m);
+  const prev=getData(prevMonth(m));
+  const c=calc(d), cp=calc(prev);
+
+  document.getElementById('overviewMonthLabel').textContent='ข้อมูลเดือน '+fmtLong(m);
+  renderKPIs(m,d,c,cp);
+  renderMainBarChart(c);
+  renderRevDonut(d,c);
+  renderExpDonut(d,c);
+  renderProfitAnalysis(c,cp);
+  renderCustDonut(d);
+}
+
+function renderKPIs(m,d,c,cp){
+  const revDiff=cp.rev>0?(c.rev-cp.rev)/cp.rev*100:null;
+  const profDiff=cp.profit!==0?(c.profit-cp.profit)/Math.abs(cp.profit)*100:null;
+  const expDiff=cp.exp>0?(c.exp-cp.exp)/cp.exp*100:null;
+  const kpis=[
+    {label:'รายได้รวม',value:THB(c.rev),sub:'เดือน '+fmtLong(m),badge:revDiff!==null?{val:PCT(revDiff),up:revDiff>=0}:null,accent:'#1A7A4A'},
+    {label:'รายจ่ายรวม',value:THB(c.exp),sub:'รายจ่ายทั้งหมด',badge:expDiff!==null?{val:PCT(expDiff),up:expDiff<0}:null,accent:'#D94335'},
+    {label:'กำไรสุทธิ',value:THB(c.profit),sub:`อัตรากำไร ${c.profitRatio.toFixed(1)}%`,badge:profDiff!==null?{val:PCT(profDiff),up:profDiff>=0}:null,accent:c.profit>=0?'#1A5FAD':'#D94335'},
+    {label:'รถพร้อมมากสุด',value:(d.cars?.max||0)+' คัน',sub:(d.cars?.maxDay||0)+' วัน',accent:'#6B3FA0'},
+    {label:'รถพร้อมน้อยสุด',value:(d.cars?.min||0)+' คัน',sub:(d.cars?.minDay||0)+' วัน',accent:'#D97706'},
+    {label:'ลูกค้ารวม',value:NUM(c.custTotal)+' คน',sub:`Walk-in ${d.customers?.walkin||0} / Villa ${d.customers?.villa||0} / Agent ${d.customers?.agent||0}`,accent:'#1A5FAD'},
+    {label:'รายได้/ลูกค้า',value:c.custTotal>0?THB(Math.round(c.rev/c.custTotal)):'-',sub:'เฉลี่ย/คน',accent:'#1A7A4A'},
+    {label:'เทียบเดือนก่อน',value:revDiff!==null?PCT(revDiff):'-',sub:cp.rev>0?'จาก '+THB(cp.rev):'ไม่มีข้อมูลเดือนก่อน',accent:revDiff===null?'#ADB5BD':revDiff>=0?'#1A7A4A':'#D94335'},
+  ];
+  document.getElementById('kpiGrid').innerHTML=kpis.map(k=>`
+    <div class="kpi-card" style="--accent:${k.accent}">
+      <div class="kpi-label">${k.label}</div>
+      <div class="kpi-value" style="font-size:${k.value.length>10?'16px':'20px'}">${k.value}</div>
+      <div class="kpi-sub">${k.sub}</div>
+      ${k.badge?`<span class="kpi-badge ${k.badge.up?'badge-up':'badge-down'}">${k.badge.up?'▲':'▼'} ${k.badge.val}</span>`:''}
+    </div>
+  `).join('');
+}
+
+function renderMainBarChart(c){
+  mkChart('mainBarChart',{
+    type:'bar',
+    data:{
+      labels:['รายได้','รายจ่าย','กำไรสุทธิ'],
+      datasets:[{
+        data:[c.rev,c.exp,c.profit],
+        backgroundColor:[COLORS.green,COLORS.red,c.profit>=0?COLORS.blue:COLORS.red],
+        borderRadius:10,borderSkipped:false,
+        barThickness:60,
+      }]
+    },
+    options:{
+      responsive:true,maintainAspectRatio:false,
+      plugins:{
+        legend:{display:false},
+        tooltip:{
+          callbacks:{label:ctx=>THB(ctx.raw)}
+        }
+      },
+      scales:{
+        y:{
+          ticks:{callback:v=>(v/1000).toFixed(0)+'K ฿',font:defaultFont},
+          grid:{color:'rgba(0,0,0,.04)'},
+        },
+        x:{grid:{display:false},ticks:{font:{...defaultFont,weight:'600'}}}
+      }
+    }
+  });
+}
+
+function renderRevDonut(d,c){
+  const labels=['ทัวร์','เช่า','อื่นๆ'];
+  const vals=[d.revenue?.tour||0,d.revenue?.rent||0,d.revenue?.other||0];
+  const total=vals.reduce((a,b)=>a+b,0);
+  const colors=[COLORS.green,COLORS.blue,COLORS.orange];
+
+  document.getElementById('revDonutTotal').textContent=total>=1000?(total/1000).toFixed(0):'0';
+  mkChart('revDonut',{
+    type:'doughnut',
+    data:{labels,datasets:[{data:vals,backgroundColor:colors,borderWidth:2,borderColor:'#fff'}]},
+    options:{responsive:true,maintainAspectRatio:false,cutout:'70%',plugins:{legend:{display:false}}}
+  });
+  document.getElementById('revLegend').innerHTML=labels.map((l,i)=>`
+    <li class="legend-item">
+      <span class="legend-dot" style="background:${colors[i]}"></span>
+      <span class="legend-name">${l}</span>
+      <span class="legend-val">${total>0?(vals[i]/total*100).toFixed(0):0}%</span>
+    </li>
+  `).join('');
+}
+
+function renderExpDonut(d,c){
+  const labels=['น้ำมัน','ซ่อม','เงินเดือน','อื่นๆ'];
+  const vals=[d.expenses?.fuel||0,d.expenses?.repair||0,d.expenses?.salary||0,d.expenses?.other||0];
+  const total=vals.reduce((a,b)=>a+b,0);
+  const colors=[COLORS.red,'#F09060',COLORS.orange,COLORS.purple];
+
+  document.getElementById('expDonutTotal').textContent=total>=1000?(total/1000).toFixed(0):'0';
+  mkChart('expDonut',{
+    type:'doughnut',
+    data:{labels,datasets:[{data:vals,backgroundColor:colors,borderWidth:2,borderColor:'#fff'}]},
+    options:{responsive:true,maintainAspectRatio:false,cutout:'70%',plugins:{legend:{display:false}}}
+  });
+  document.getElementById('expLegend').innerHTML=labels.map((l,i)=>`
+    <li class="legend-item">
+      <span class="legend-dot" style="background:${colors[i]}"></span>
+      <span class="legend-name">${l}</span>
+      <span class="legend-val">${total>0?(vals[i]/total*100).toFixed(0):0}%</span>
+    </li>
+  `).join('');
+}
+
+function renderProfitAnalysis(c,cp){
+  const pct=c.profitRatio;
+  const filled=Math.max(0,Math.min(100,Math.abs(pct)));
+  const isNeg=c.profit<0;
+  let status='',statusColor='';
+  if(pct>=40){status='ยอดเยี่ยม';statusColor='#1A7A4A'}
+  else if(pct>=20){status='ดี';statusColor='#2E86DE'}
+  else if(pct>=0){status='พอใช้';statusColor='#D97706'}
+  else{status='ขาดทุน';statusColor='#D94335'}
+
+  document.getElementById('profitAnalysis').innerHTML=`
+    <div style="display:flex;justify-content:space-between;align-items:baseline;margin-bottom:6px">
+      <span style="font-size:12px;color:var(--gray-500)">อัตรากำไรสุทธิ</span>
+      <span style="font-size:24px;font-weight:700;font-family:var(--font-mono);color:${statusColor}">${pct.toFixed(1)}%</span>
+    </div>
+    <div class="profit-ratio-bar">
+      <div class="profit-ratio-fill${isNeg?' negative':''}" style="width:${filled}%"></div>
+    </div>
+    <div style="text-align:right;font-size:11px;font-weight:700;color:${statusColor};margin-bottom:14px">${status}</div>
+    <div style="display:flex;flex-direction:column;gap:9px">
+      <div style="display:flex;justify-content:space-between;font-size:13px">
+        <span style="color:var(--gray-500)">รายได้รวม</span>
+        <span style="font-family:var(--font-mono);font-weight:600;color:#1A7A4A">${THB(c.rev)}</span>
+      </div>
+      <div style="display:flex;justify-content:space-between;font-size:13px">
+        <span style="color:var(--gray-500)">รายจ่ายรวม</span>
+        <span style="font-family:var(--font-mono);font-weight:600;color:#D94335">${THB(c.exp)}</span>
+      </div>
+      <div style="display:flex;justify-content:space-between;font-size:13px;border-top:1px solid var(--gray-200);padding-top:9px">
+        <span style="font-weight:700">กำไรสุทธิ</span>
+        <span style="font-family:var(--font-mono);font-weight:700;color:${c.profit>=0?'#1A5FAD':'#D94335'}">${THB(c.profit)}</span>
+      </div>
+      ${cp.rev>0?`
+      <div style="display:flex;justify-content:space-between;font-size:12px;color:var(--gray-500)">
+        <span>เทียบเดือนก่อน</span>
+        <span style="font-weight:600;color:${c.rev>=cp.rev?'#1A7A4A':'#D94335'}">${c.rev>=cp.rev?'▲':'▼'} ${Math.abs(c.rev-cp.rev).toLocaleString('th-TH')} ฿</span>
+      </div>`:''}
+    </div>
+  `;
+}
+
+function renderCustDonut(d){
+  const walkin=d.customers?.walkin||0;
+  const villa=d.customers?.villa||0;
+  const agent=d.customers?.agent||0;
+  const total=walkin+villa+agent;
+  document.getElementById('custTotal').textContent=total;
+  const colors=[COLORS.green,COLORS.blue,COLORS.purple];
+  const names=['Walk-in','Villa','Agent'];
+  const vals=[walkin,villa,agent];
+
+  mkChart('custDonut',{
+    type:'doughnut',
+    data:{labels:names,datasets:[{data:vals,backgroundColor:colors,borderWidth:2,borderColor:'#fff'}]},
+    options:{responsive:true,maintainAspectRatio:false,cutout:'72%',plugins:{legend:{display:false}}}
+  });
+  document.getElementById('custLegend').innerHTML=names.map((n,i)=>`
+    <li class="legend-item">
+      <span class="legend-dot" style="background:${colors[i]}"></span>
+      <span class="legend-name">${n}</span>
+      <span class="legend-val">${vals[i]}</span>
+      <span class="legend-pct">${total>0?Math.round(vals[i]/total*100):0}%</span>
+    </li>
+  `).join('');
+}
+
+// ══════════════ FINANCE PAGE ══════════════
+let _trendType='line';
+
+function switchTrend(type,btn){
+  _trendType=type;
+  document.querySelectorAll('.chart-tab').forEach(t=>t.classList.remove('active'));
+  btn.classList.add('active');
+  renderFinance();
+}
+
+function renderFinance(){
+  const m=document.getElementById('finMonth').value||today();
+  const d=getData(m);
+  const c=calc(d);
+  document.getElementById('financeMonthLabel').textContent='เดือน '+fmtLong(m);
+
+  // Summary horizontal bar
+  mkChart('finSummaryChart',{
+    type:'bar',
+    data:{
+      labels:['รายได้','รายจ่าย','กำไร'],
+      datasets:[{
+        data:[c.rev,c.exp,c.profit],
+        backgroundColor:[COLORS.green,COLORS.red,c.profit>=0?COLORS.blue:COLORS.red],
+        borderRadius:8,borderSkipped:false,barThickness:40,
+      }]
+    },
+    options:{
+      indexAxis:'y',responsive:true,maintainAspectRatio:false,
+      plugins:{
+        legend:{display:false},
+        tooltip:{callbacks:{label:ctx=>THB(ctx.raw)}}
+      },
+      scales:{
+        x:{ticks:{callback:v=>(v/1000).toFixed(0)+'K ฿',font:defaultFont},grid:{color:'rgba(0,0,0,.04)'}},
+        y:{grid:{display:false},ticks:{font:{...defaultFont,weight:'600'}}}
+      }
+    }
+  });
+
+  // Revenue table
+  const revRows=[['ทัวร์',d.revenue?.tour||0,'💛'],['เช่า',d.revenue?.rent||0,'💚'],['อื่นๆ',d.revenue?.other||0,'🔵']];
+  const revTotal=revRows.reduce((a,r)=>a+r[1],0);
+  document.getElementById('revTable').innerHTML=`
+    <thead><tr><th>หมวด</th><th>สัดส่วน</th><th>%</th><th>มูลค่า</th></tr></thead>
+    <tbody>
+      ${revRows.map(r=>`
+        <tr>
+          <td>${r[2]} ${r[0]}</td>
+          <td><div class="progress-bar"><div class="progress-fill" style="width:${revTotal>0?r[1]/revTotal*100:0}%;background:${COLORS.green}"></div></div></td>
+          <td style="font-size:12px;color:var(--gray-500)">${revTotal>0?(r[1]/revTotal*100).toFixed(1):0}%</td>
+          <td>${THB(r[1])}</td>
+        </tr>`).join('')}
+      <tr class="total-row"><td colspan="3">รวมรายได้</td><td>${THB(revTotal)}</td></tr>
+    </tbody>`;
+
+  // Expense table
+  const expRows=[['ค่าน้ำมัน',d.expenses?.fuel||0,'⛽'],['ค่าซ่อม',d.expenses?.repair||0,'🔧'],['เงินเดือน',d.expenses?.salary||0,'👤'],['อื่นๆ',d.expenses?.other||0,'📦']];
+  const expTotal=expRows.reduce((a,r)=>a+r[1],0);
+  document.getElementById('expTable').innerHTML=`
+    <thead><tr><th>หมวด</th><th>สัดส่วน</th><th>%</th><th>มูลค่า</th></tr></thead>
+    <tbody>
+      ${expRows.map(r=>`
+        <tr>
+          <td>${r[2]} ${r[0]}</td>
+          <td><div class="progress-bar"><div class="progress-fill" style="width:${expTotal>0?r[1]/expTotal*100:0}%;background:${COLORS.red}"></div></div></td>
+          <td style="font-size:12px;color:var(--gray-500)">${expTotal>0?(r[1]/expTotal*100).toFixed(1):0}%</td>
+          <td>${THB(r[1])}</td>
+        </tr>`).join('')}
+      <tr class="total-row"><td colspan="3">รวมรายจ่าย</td><td>${THB(expTotal)}</td></tr>
+    </tbody>`;
+
+  // 6-month trend
+  const months6=getMonthRange(m,6);
+  const labels6=months6.map(fmtShort);
+  const revs=[],exps=[],profits=[];
+  months6.forEach(key=>{const dd=getData(key),cc=calc(dd);revs.push(cc.rev);exps.push(cc.exp);profits.push(cc.profit);});
+
+  mkChart('trendChart',{
+    type:_trendType,
+    data:{
+      labels:labels6,
+      datasets:[
+        {label:'รายได้',data:revs,borderColor:COLORS.green,backgroundColor:_trendType==='line'?COLORS.greenBg:COLORS.green,tension:.35,fill:_trendType==='line',borderWidth:2,borderRadius:6},
+        {label:'รายจ่าย',data:exps,borderColor:COLORS.red,backgroundColor:_trendType==='line'?COLORS.redBg:COLORS.red,tension:.35,fill:false,borderWidth:2,borderDash:_trendType==='line'?[5,3]:[],borderRadius:6},
+        {label:'กำไร',data:profits,borderColor:COLORS.blue,backgroundColor:_trendType==='line'?COLORS.blueBg:COLORS.blue,tension:.35,fill:false,borderWidth:2,borderRadius:6},
+      ]
+    },
+    options:{
+      responsive:true,maintainAspectRatio:false,
+      plugins:{
+        legend:{position:'top',labels:{font:defaultFont,boxWidth:12,padding:14}},
+        tooltip:{callbacks:{label:ctx=>ctx.dataset.label+': '+THB(ctx.raw)}}
+      },
+      scales:{
+        y:{ticks:{callback:v=>(v/1000).toFixed(0)+'K',font:defaultFont},grid:{color:'rgba(0,0,0,.04)'}},
+        x:{grid:{display:false},ticks:{font:defaultFont}}
+      }
+    }
+  });
+
+  // Stacked expense breakdown 6 months
+  const fuels=[],repairs=[],salaries=[],others=[];
+  months6.forEach(key=>{
+    const dd=getData(key);
+    fuels.push(dd.expenses?.fuel||0);
+    repairs.push(dd.expenses?.repair||0);
+    salaries.push(dd.expenses?.salary||0);
+    others.push(dd.expenses?.other||0);
+  });
+
+  mkChart('expStackChart',{
+    type:'bar',
+    data:{
+      labels:labels6,
+      datasets:[
+        {label:'น้ำมัน',data:fuels,backgroundColor:COLORS.red,borderRadius:4,stack:'exp'},
+        {label:'ซ่อม',data:repairs,backgroundColor:'#F09060',borderRadius:4,stack:'exp'},
+        {label:'เงินเดือน',data:salaries,backgroundColor:COLORS.orange,borderRadius:4,stack:'exp'},
+        {label:'อื่นๆ',data:others,backgroundColor:COLORS.purple,borderRadius:4,stack:'exp'},
+      ]
+    },
+    options:{
+      responsive:true,maintainAspectRatio:false,
+      plugins:{
+        legend:{position:'top',labels:{font:defaultFont,boxWidth:12,padding:12}},
+        tooltip:{callbacks:{label:ctx=>ctx.dataset.label+': '+THB(ctx.raw)}}
+      },
+      scales:{
+        y:{stacked:true,ticks:{callback:v=>(v/1000).toFixed(0)+'K',font:defaultFont},grid:{color:'rgba(0,0,0,.04)'}},
+        x:{stacked:true,grid:{display:false},ticks:{font:defaultFont}}
+      }
+    }
+  });
+}
+
+// ══════════════ FLEET PAGE ══════════════
+function renderFleet(){
+  const m=document.getElementById('fleetMonth').value||today();
+  const d=getData(m);
+  document.getElementById('fleetMonthLabel').textContent='เดือน '+fmtLong(m);
+
+  const total=d.cars?.total||0;
+  const maxCar=d.cars?.max||0, maxDay=d.cars?.maxDay||0;
+  const minCar=d.cars?.min||0, minDay=d.cars?.minDay||0;
+  const days=d.cars?.daysInMonth||30;
+  const avgCar=((maxDay+minDay)>0)?((maxCar*maxDay+minCar*minDay)/(maxDay+minDay)).toFixed(1):'-';
+
+  const months6=getMonthRange(m,6);
+  const fleetData=months6.map(key=>{const dd=getData(key);return{label:fmtShort(key),max:dd.cars?.max||0,min:dd.cars?.min||0,total:dd.cars?.total||0};});
+
+  document.getElementById('fleetContent').innerHTML=`
+    <div class="kpi-grid" style="grid-template-columns:repeat(auto-fill,minmax(170px,1fr))">
+      <div class="kpi-card" style="--accent:#6B3FA0"><div class="kpi-label">ฝูงรถทั้งหมด</div><div class="kpi-value">${total||'-'} คัน</div><div class="kpi-sub">จำนวนรวม</div></div>
+      <div class="kpi-card" style="--accent:#1A7A4A"><div class="kpi-label">พร้อมมากสุด</div><div class="kpi-value">${maxCar} คัน</div><div class="kpi-sub">${maxDay} วัน</div></div>
+      <div class="kpi-card" style="--accent:#D97706"><div class="kpi-label">พร้อมน้อยสุด</div><div class="kpi-value">${minCar} คัน</div><div class="kpi-sub">${minDay} วัน</div></div>
+      <div class="kpi-card" style="--accent:#1A5FAD"><div class="kpi-label">เฉลี่ยพร้อม/วัน</div><div class="kpi-value">${avgCar} คัน</div><div class="kpi-sub">ประมาณการ</div></div>
+    </div>
+
+    <div class="card">
+      <div class="card-title">🏍️ สถิติรถพร้อมบริการ 6 เดือน</div>
+      <div style="position:relative;height:220px"><canvas id="fleetTrendChart"></canvas></div>
+    </div>
+
+    <div class="card">
+      <div class="card-title">📊 สัดส่วนวันบริการเดือนนี้</div>
+      ${total>0?`
+      <div style="display:flex;flex-direction:column;gap:14px">
+        <div>
+          <div style="display:flex;justify-content:space-between;font-size:13px;margin-bottom:5px">
+            <span style="color:var(--gray-500)">รถพร้อมมากสุด</span>
+            <span style="font-weight:600">${maxCar} คัน × ${maxDay} วัน</span>
+          </div>
+          <div class="progress-bar" style="height:10px">
+            <div class="progress-fill" style="width:${days>0?maxDay/days*100:0}%;background:#5BB582"></div>
+          </div>
+          <div style="font-size:11px;color:var(--gray-400);margin-top:3px">${days>0?Math.round(maxDay/days*100):0}% ของเดือน</div>
+        </div>
+        <div>
+          <div style="display:flex;justify-content:space-between;font-size:13px;margin-bottom:5px">
+            <span style="color:var(--gray-500)">รถพร้อมน้อยสุด</span>
+            <span style="font-weight:600">${minCar} คัน × ${minDay} วัน</span>
+          </div>
+          <div class="progress-bar" style="height:10px">
+            <div class="progress-fill" style="width:${days>0?minDay/days*100:0}%;background:#EFC97A"></div>
+          </div>
+          <div style="font-size:11px;color:var(--gray-400);margin-top:3px">${days>0?Math.round(minDay/days*100):0}% ของเดือน</div>
+        </div>
+      </div>`:emptyState('ยังไม่มีข้อมูลรถ','กรอกข้อมูลในหน้าบันทึก')}
+    </div>
+  `;
+
+  // Fleet trend chart
+  setTimeout(()=>{
+    mkChart('fleetTrendChart',{
+      type:'line',
+      data:{
+        labels:fleetData.map(f=>f.label),
+        datasets:[
+          {label:'มากสุด',data:fleetData.map(f=>f.max),borderColor:COLORS.green,backgroundColor:COLORS.greenBg,tension:.3,fill:true,borderWidth:2},
+          {label:'น้อยสุด',data:fleetData.map(f=>f.min),borderColor:COLORS.orange,backgroundColor:COLORS.orangeBg,tension:.3,fill:false,borderWidth:2,borderDash:[5,3]},
+        ]
+      },
+      options:{
+        responsive:true,maintainAspectRatio:false,
+        plugins:{legend:{position:'top',labels:{font:defaultFont,boxWidth:12,padding:12}}},
+        scales:{
+          y:{ticks:{stepSize:1,font:defaultFont},grid:{color:'rgba(0,0,0,.04)'},title:{display:true,text:'คัน',font:defaultFont}},
+          x:{grid:{display:false},ticks:{font:defaultFont}}
+        }
+      }
+    });
+  },50);
+}
+
+// ══════════════ CUSTOMERS PAGE ══════════════
+function renderCustomers(){
+  const m=document.getElementById('custMonth').value||today();
+  const d=getData(m);
+  document.getElementById('custMonthLabel').textContent='เดือน '+fmtLong(m);
+
+  const walkin=d.customers?.walkin||0, villa=d.customers?.villa||0, agent=d.customers?.agent||0;
+  const total=walkin+villa+agent;
+  const c=calc(d);
+  const revPerCust=total>0?Math.round(c.rev/total):0;
+
+  // 6-month customer trend
+  const months6=getMonthRange(m,6);
+  const custTrend={walkin:[],villa:[],agent:[],labels:months6.map(fmtShort)};
+  months6.forEach(key=>{
+    const dd=getData(key);
+    custTrend.walkin.push(dd.customers?.walkin||0);
+    custTrend.villa.push(dd.customers?.villa||0);
+    custTrend.agent.push(dd.customers?.agent||0);
+  });
+
+  document.getElementById('customerContent').innerHTML=`
+    <div class="kpi-grid">
+      <div class="kpi-card" style="--accent:#1A5FAD"><div class="kpi-label">ลูกค้ารวม</div><div class="kpi-value">${NUM(total)} คน</div><div class="kpi-sub">ทุกช่องทาง</div></div>
+      <div class="kpi-card" style="--accent:#5BB582"><div class="kpi-label">Walk-in</div><div class="kpi-value">${NUM(walkin)} คน</div><div class="kpi-sub">${total>0?Math.round(walkin/total*100):0}%</div></div>
+      <div class="kpi-card" style="--accent:#5E8FD1"><div class="kpi-label">Villa</div><div class="kpi-value">${NUM(villa)} คน</div><div class="kpi-sub">${total>0?Math.round(villa/total*100):0}%</div></div>
+      <div class="kpi-card" style="--accent:#B085D4"><div class="kpi-label">Agent</div><div class="kpi-value">${NUM(agent)} คน</div><div class="kpi-sub">${total>0?Math.round(agent/total*100):0}%</div></div>
+      <div class="kpi-card" style="--accent:#D97706"><div class="kpi-label">รายได้/ลูกค้า</div><div class="kpi-value" style="font-size:16px">${THB(revPerCust)}</div><div class="kpi-sub">เฉลี่ย/คน</div></div>
+    </div>
+
+    <div class="two-col">
+      <div class="card">
+        <div class="card-title">📊 สัดส่วนช่องทางเดือนนี้</div>
+        ${total>0?`
+        <div style="display:flex;flex-direction:column;gap:12px">
+          ${[{name:'Walk-in',val:walkin,color:COLORS.green},{name:'Villa',val:villa,color:COLORS.blue},{name:'Agent',val:agent,color:COLORS.purple}].map(ch=>`
+            <div>
+              <div style="display:flex;justify-content:space-between;font-size:13px;margin-bottom:5px">
+                <span style="font-weight:600">${ch.name}</span>
+                <span style="font-family:var(--font-mono)">${NUM(ch.val)} <span style="color:var(--gray-400);font-size:11px">${total>0?(ch.val/total*100).toFixed(1):0}%</span></span>
+              </div>
+              <div class="progress-bar" style="height:8px"><div class="progress-fill" style="width:${total>0?ch.val/total*100:0}%;background:${ch.color}"></div></div>
+            </div>`).join('')}
+        </div>`:emptyState('ไม่มีข้อมูล','กรอกข้อมูลในหน้าบันทึก')}
+      </div>
+      <div class="card">
+        <div class="card-title">🥧 สัดส่วนช่องทาง</div>
+        <div style="position:relative;height:200px"><canvas id="custPageDonut"></canvas></div>
+      </div>
+    </div>
+
+    <div class="card">
+      <div class="card-title">📈 แนวโน้มลูกค้า 6 เดือน</div>
+      <div style="position:relative;height:240px"><canvas id="custTrendChart"></canvas></div>
+    </div>
+  `;
+
+  setTimeout(()=>{
+    // Donut
+    mkChart('custPageDonut',{
+      type:'doughnut',
+      data:{
+        labels:['Walk-in','Villa','Agent'],
+        datasets:[{data:[walkin,villa,agent],backgroundColor:[COLORS.green,COLORS.blue,COLORS.purple],borderWidth:2,borderColor:'#fff'}]
+      },
+      options:{
+        responsive:true,maintainAspectRatio:false,cutout:'65%',
+        plugins:{
+          legend:{position:'bottom',labels:{font:defaultFont,boxWidth:10,padding:10}},
+          tooltip:{callbacks:{label:ctx=>`${ctx.label}: ${ctx.raw} คน (${total>0?(ctx.raw/total*100).toFixed(1):0}%)`}}
+        }
+      }
+    });
+
+    // Trend
+    mkChart('custTrendChart',{
+      type:'bar',
+      data:{
+        labels:custTrend.labels,
+        datasets:[
+          {label:'Walk-in',data:custTrend.walkin,backgroundColor:COLORS.green,borderRadius:5,stack:'cust'},
+          {label:'Villa',data:custTrend.villa,backgroundColor:COLORS.blue,borderRadius:5,stack:'cust'},
+          {label:'Agent',data:custTrend.agent,backgroundColor:COLORS.purple,borderRadius:5,stack:'cust'},
+        ]
+      },
+      options:{
+        responsive:true,maintainAspectRatio:false,
+        plugins:{
+          legend:{position:'top',labels:{font:defaultFont,boxWidth:12,padding:12}},
+          tooltip:{callbacks:{label:ctx=>`${ctx.dataset.label}: ${ctx.raw} คน`}}
+        },
+        scales:{
+          y:{stacked:true,ticks:{stepSize:5,font:defaultFont},grid:{color:'rgba(0,0,0,.04)'},title:{display:true,text:'คน',font:defaultFont}},
+          x:{stacked:true,grid:{display:false},ticks:{font:defaultFont}}
+        }
+      }
+    });
+  },50);
+}
+
+// ══════════════ HISTORY PAGE ══════════════
+function renderHistory(){
+  const yr=parseInt(document.getElementById('histYear').value)||new Date().getFullYear();
+  const rows=[];
+  let hasAny=false;
+  for(let mo=1;mo<=12;mo++){
+    const key=yr+'-'+(mo<10?'0':'')+mo;
+    const d=getData(key), c=calc(d);
+    const hasData=c.rev>0||c.exp>0;
+    if(hasData)hasAny=true;
+    rows.push({month:MONTH_TH[mo-1],key,c,hasData});
+  }
+
+  const el=document.getElementById('historyContent');
+  if(!hasAny){el.innerHTML=`<div class="card">${emptyState('ไม่มีข้อมูลปี '+yr,'กรอกข้อมูลในหน้าบันทึก')}</div>`;return;}
+
+  const totalRev=rows.reduce((a,r)=>a+r.c.rev,0);
+  const totalExp=rows.reduce((a,r)=>a+r.c.exp,0);
+  const totalProfit=totalRev-totalExp;
+  const totalCust=rows.reduce((a,r)=>a+r.c.custTotal,0);
+
+  const chartMonths=rows.filter(r=>r.hasData).map(r=>r.month);
+  const chartRevs=rows.filter(r=>r.hasData).map(r=>r.c.rev);
+  const chartExps=rows.filter(r=>r.hasData).map(r=>r.c.exp);
+  const chartProfits=rows.filter(r=>r.hasData).map(r=>r.c.profit);
+
+  el.innerHTML=`
+    <div class="kpi-grid" style="margin-bottom:20px">
+      <div class="kpi-card" style="--accent:#1A7A4A"><div class="kpi-label">รายได้รวมทั้งปี</div><div class="kpi-value" style="font-size:16px">${THB(totalRev)}</div></div>
+      <div class="kpi-card" style="--accent:#D94335"><div class="kpi-label">รายจ่ายรวมทั้งปี</div><div class="kpi-value" style="font-size:16px">${THB(totalExp)}</div></div>
+      <div class="kpi-card" style="--accent:${totalProfit>=0?'#1A5FAD':'#D94335'}"><div class="kpi-label">กำไรสุทธิทั้งปี</div><div class="kpi-value" style="font-size:16px">${THB(totalProfit)}</div></div>
+      <div class="kpi-card" style="--accent:#6B3FA0"><div class="kpi-label">ลูกค้ารวมทั้งปี</div><div class="kpi-value" style="font-size:16px">${NUM(totalCust)} คน</div></div>
+    </div>
+
+    <div class="card">
+      <div class="card-title">📈 ภาพรวมรายได้-กำไรทั้งปี ${yr}</div>
+      <div style="position:relative;height:240px"><canvas id="historyChart"></canvas></div>
+    </div>
+
+    <div class="card">
+      <div class="card-title">📅 รายเดือนปี ${yr}</div>
+      <table class="data-table">
+        <thead>
+          <tr>
+            <th>เดือน</th>
+            <th style="text-align:right">รายได้</th>
+            <th style="text-align:right">รายจ่าย</th>
+            <th style="text-align:right">กำไร</th>
+            <th style="text-align:right">อัตรากำไร</th>
+            <th style="text-align:right">ลูกค้า</th>
+          </tr>
+        </thead>
+        <tbody>
+          ${rows.map(r=>`
+            <tr style="${!r.hasData?'opacity:.4':''}cursor:pointer" onclick="jumpToMonth('${r.key}')">
+              <td style="font-weight:600">${r.month}</td>
+              <td style="text-align:right;font-family:var(--font-mono);color:#1A7A4A">${r.hasData?THB(r.c.rev):'-'}</td>
+              <td style="text-align:right;font-family:var(--font-mono);color:#D94335">${r.hasData?THB(r.c.exp):'-'}</td>
+              <td style="text-align:right;font-family:var(--font-mono);font-weight:700;color:${r.c.profit>=0?'#1A5FAD':'#D94335'}">${r.hasData?THB(r.c.profit):'-'}</td>
+              <td style="text-align:right">${r.hasData?`<span class="history-chip" style="background:${r.c.profitRatio>=20?'#E6F4EC':r.c.profitRatio>=0?'#FEF3E2':'#FDECEA'};color:${r.c.profitRatio>=20?'#1A7A4A':r.c.profitRatio>=0?'#D97706':'#D94335'}">${r.c.profitRatio.toFixed(1)}%</span>`:'-'}</td>
+              <td style="text-align:right;color:var(--gray-600)">${r.hasData?NUM(r.c.custTotal)+' คน':'-'}</td>
+            </tr>`).join('')}
+          <tr class="total-row">
+            <td>รวมทั้งปี</td>
+            <td style="text-align:right">${THB(totalRev)}</td>
+            <td style="text-align:right">${THB(totalExp)}</td>
+            <td style="text-align:right;color:${totalProfit>=0?'#1A5FAD':'#D94335'}">${THB(totalProfit)}</td>
+            <td style="text-align:right">${totalRev>0?(totalProfit/totalRev*100).toFixed(1):0}%</td>
+            <td style="text-align:right">${NUM(totalCust)} คน</td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+  `;
+
+  setTimeout(()=>{
+    mkChart('historyChart',{
+      type:'bar',
+      data:{
+        labels:chartMonths,
+        datasets:[
+          {label:'รายได้',data:chartRevs,backgroundColor:COLORS.greenBg,borderColor:COLORS.green,borderWidth:1.5,borderRadius:5,type:'bar'},
+          {label:'รายจ่าย',data:chartExps,backgroundColor:COLORS.redBg,borderColor:COLORS.red,borderWidth:1.5,borderRadius:5,type:'bar'},
+          {label:'กำไร',data:chartProfits,borderColor:COLORS.blue,backgroundColor:'transparent',borderWidth:2.5,type:'line',tension:.35,pointRadius:4,pointBackgroundColor:COLORS.blue},
+        ]
+      },
+      options:{
+        responsive:true,maintainAspectRatio:false,
+        plugins:{
+          legend:{position:'top',labels:{font:defaultFont,boxWidth:12,padding:12}},
+          tooltip:{callbacks:{label:ctx=>ctx.dataset.label+': '+THB(ctx.raw)}}
+        },
+        scales:{
+          y:{ticks:{callback:v=>(v/1000).toFixed(0)+'K',font:defaultFont},grid:{color:'rgba(0,0,0,.04)'}},
+          x:{grid:{display:false},ticks:{font:defaultFont}}
+        }
+      }
+    });
+  },50);
+}
+
+function jumpToMonth(m){
+  document.getElementById('dashMonth').value=m;
+  showPage('overview',document.querySelector('.nav-btn'));
+}
+
+// ══════════════ ENTRY PAGE ══════════════
+function loadEntry(){
+  const m=document.getElementById('entryMonth').value;
+  if(!m)return;
+  const d=getData(m);
+  document.getElementById('e_maxCar').value=d.cars?.max||'';
+  document.getElementById('e_maxDay').value=d.cars?.maxDay||'';
+  document.getElementById('e_minCar').value=d.cars?.min||'';
+  document.getElementById('e_minDay').value=d.cars?.minDay||'';
+  document.getElementById('e_totalCar').value=d.cars?.total||'';
+  document.getElementById('e_daysInMonth').value=d.cars?.daysInMonth||new Date(m.split('-')[0],m.split('-')[1],0).getDate();
+  document.getElementById('e_revTour').value=d.revenue?.tour||'';
+  document.getElementById('e_revRent').value=d.revenue?.rent||'';
+  document.getElementById('e_revOther').value=d.revenue?.other||'';
+  document.getElementById('e_expFuel').value=d.expenses?.fuel||'';
+  document.getElementById('e_expRepair').value=d.expenses?.repair||'';
+  document.getElementById('e_expSalary').value=d.expenses?.salary||'';
+  document.getElementById('e_expOther').value=d.expenses?.other||'';
+  document.getElementById('e_walkin').value=d.customers?.walkin||'';
+  document.getElementById('e_villa').value=d.customers?.villa||'';
+  document.getElementById('e_agent').value=d.customers?.agent||'';
+  document.getElementById('e_note').value=d.note||'';
+}
+
+function n(id){return parseInt(document.getElementById(id).value)||0}
+
+function saveEntry(){
+  const m=document.getElementById('entryMonth').value;
+  if(!m){showToast('กรุณาเลือกเดือน',false);return;}
+  const data={
+    cars:{max:n('e_maxCar'),maxDay:n('e_maxDay'),min:n('e_minCar'),minDay:n('e_minDay'),total:n('e_totalCar'),daysInMonth:n('e_daysInMonth')},
+    revenue:{tour:n('e_revTour'),rent:n('e_revRent'),other:n('e_revOther')},
+    expenses:{fuel:n('e_expFuel'),repair:n('e_expRepair'),salary:n('e_expSalary'),other:n('e_expOther')},
+    customers:{walkin:n('e_walkin'),villa:n('e_villa'),agent:n('e_agent')},
+    note:document.getElementById('e_note').value.trim()
+  };
+  saveData(m,data);
+  showToast('✅ บันทึกข้อมูลเดือน '+fmtLong(m)+' เรียบร้อย');
+}
+
+function clearEntry(){
+  ['e_maxCar','e_maxDay','e_minCar','e_minDay','e_totalCar','e_daysInMonth',
+   'e_revTour','e_revRent','e_revOther',
+   'e_expFuel','e_expRepair','e_expSalary','e_expOther',
+   'e_walkin','e_villa','e_agent'].forEach(id=>document.getElementById(id).value='');
+  document.getElementById('e_note').value='';
+}
+
+// ══════════════ EXPORT ══════════════
+function captureDashboard(){
+  showToast('กำลังบันทึกภาพ...');
+  html2canvas(document.getElementById('page-overview'),{scale:2,useCORS:true}).then(canvas=>{
+    const link=document.createElement('a');
+    link.download='ATV-Report-'+document.getElementById('dashMonth').value+'.png';
+    link.href=canvas.toDataURL();
+    link.click();
+    showToast('📸 บันทึกภาพเรียบร้อย');
+  });
+}
+
+// ══════════════ INIT ══════════════
+document.getElementById('dashMonth').value=today();
+document.getElementById('footerDate').textContent=new Date().toLocaleDateString('th-TH',{weekday:'long',year:'numeric',month:'long',day:'numeric'});
+renderAll();
+</script>
 </body>
 </html>
